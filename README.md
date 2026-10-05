@@ -42,7 +42,7 @@ Laboratorio IA (`python app/benchmark.py --rounds 100`): un solo Husk saltador, 
 
 ## Cómo ejecutarlo
 - **Enlace público:** _pendiente (itch.io con pygbag)_.
-- **Repositorio:** https://github.com/<usuario>/AI-2026-2-Equipo12-metroidvania
+- **Repositorio:** https://github.com/qtimeout/AI-2026-2-Equipo12-metroidvania
 - **Local, escritorio:** `pip install -r requirements.txt` y luego `python app/main.py`.
 - **Local, navegador:** `python -m pygbag app` y abrir `http://localhost:8000`.
 - **Benchmark en consola:** `python app/benchmark.py --rounds 100 --seed 2026 --budget 200`.
