@@ -41,7 +41,7 @@ Laboratorio IA (`python app/benchmark.py --rounds 100`): un solo Husk saltador, 
 - La tabla de la partida con humano (tecla `M`) suma los episodios de cada técnica con varios enemigos de distinto tipo. Sirve para la demostración, no para concluir: la comparación válida es la del laboratorio.
 
 ## Cómo ejecutarlo
-- **Enlace público:** _pendiente (itch.io con pygbag)_.
+- **Enlace público:** https://qtimeout.itch.io/metroidvania-equipo-12
 - **Repositorio:** https://github.com/qtimeout/AI-2026-2-Equipo12-metroidvania
 - **Local, escritorio:** `pip install -r requirements.txt` y luego `python app/main.py`.
 - **Local, navegador:** `python -m pygbag app` y abrir `http://localhost:8000`.
