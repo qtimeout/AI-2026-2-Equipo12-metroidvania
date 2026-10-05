@@ -1,0 +1,307 @@
+{
+ "anims": {
+  "knight_idle": {
+   "frames": [
+    "knight_idle_0.png",
+    "knight_idle_1.png",
+    "knight_idle_2.png",
+    "knight_idle_3.png",
+    "knight_idle_4.png"
+   ],
+   "fps": 6,
+   "loop": true,
+   "faces": -1
+  },
+  "knight_run": {
+   "frames": [
+    "knight_run_0.png",
+    "knight_run_1.png",
+    "knight_run_2.png",
+    "knight_run_3.png",
+    "knight_run_4.png",
+    "knight_run_5.png"
+   ],
+   "fps": 12,
+   "loop": true,
+   "faces": -1
+  },
+  "knight_jump": {
+   "frames": [
+    "knight_jump_0.png",
+    "knight_jump_1.png"
+   ],
+   "fps": 8,
+   "loop": false,
+   "faces": -1
+  },
+  "knight_fall": {
+   "frames": [
+    "knight_fall_0.png",
+    "knight_fall_1.png",
+    "knight_fall_2.png"
+   ],
+   "fps": 8,
+   "loop": true,
+   "faces": -1
+  },
+  "knight_attack": {
+   "frames": [
+    "knight_attack_0.png",
+    "knight_attack_1.png"
+   ],
+   "fps": 14,
+   "loop": false,
+   "faces": -1
+  },
+  "knight_hurt": {
+   "frames": [
+    "knight_hurt_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  },
+  "slash": {
+   "frames": [
+    "slash_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  },
+  "husk_walk": {
+   "frames": [
+    "husk_walk_0.png",
+    "husk_walk_1.png",
+    "husk_walk_2.png",
+    "husk_walk_3.png",
+    "husk_walk_4.png",
+    "husk_walk_5.png"
+   ],
+   "fps": 10,
+   "loop": true,
+   "faces": -1
+  },
+  "husk_idle": {
+   "frames": [
+    "husk_idle_0.png"
+   ],
+   "fps": 1,
+   "loop": true,
+   "faces": -1
+  },
+  "husk_leap": {
+   "frames": [
+    "husk_leap_0.png",
+    "husk_leap_1.png",
+    "husk_leap_2.png",
+    "husk_leap_3.png"
+   ],
+   "fps": 8,
+   "loop": false,
+   "faces": -1
+  },
+  "husk_hurt": {
+   "frames": [
+    "husk_hurt_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  },
+  "husk_death": {
+   "frames": [
+    "husk_death_0.png",
+    "husk_death_1.png"
+   ],
+   "fps": 4,
+   "loop": false,
+   "faces": -1
+  },
+  "whusk_walk": {
+   "frames": [
+    "whusk_walk_0.png",
+    "whusk_walk_1.png",
+    "whusk_walk_2.png",
+    "whusk_walk_3.png",
+    "whusk_walk_4.png",
+    "whusk_walk_5.png"
+   ],
+   "fps": 9,
+   "loop": true,
+   "faces": 1
+  },
+  "whusk_idle": {
+   "frames": [
+    "whusk_idle_0.png"
+   ],
+   "fps": 1,
+   "loop": true,
+   "faces": 1
+  },
+  "whusk_leap": {
+   "frames": [
+    "whusk_leap_0.png",
+    "whusk_leap_1.png",
+    "whusk_leap_2.png",
+    "whusk_leap_3.png"
+   ],
+   "fps": 8,
+   "loop": false,
+   "faces": 1
+  },
+  "whusk_hurt": {
+   "frames": [
+    "whusk_hurt_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": 1
+  },
+  "whusk_death": {
+   "frames": [
+    "whusk_death_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": 1
+  },
+  "horn_walk": {
+   "frames": [
+    "horn_walk_0.png",
+    "horn_walk_1.png",
+    "horn_walk_2.png",
+    "horn_walk_3.png",
+    "horn_walk_4.png",
+    "horn_walk_5.png"
+   ],
+   "fps": 10,
+   "loop": true,
+   "faces": 1
+  },
+  "horn_idle": {
+   "frames": [
+    "horn_idle_0.png"
+   ],
+   "fps": 1,
+   "loop": true,
+   "faces": 1
+  },
+  "horn_leap": {
+   "frames": [
+    "horn_leap_0.png",
+    "horn_leap_1.png",
+    "horn_leap_2.png",
+    "horn_leap_3.png"
+   ],
+   "fps": 8,
+   "loop": false,
+   "faces": 1
+  },
+  "horn_hurt": {
+   "frames": [
+    "horn_hurt_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": 1
+  },
+  "horn_death": {
+   "frames": [
+    "horn_death_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": 1
+  },
+  "mask_full": {
+   "frames": [
+    "mask_full_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  },
+  "mask_empty": {
+   "frames": [
+    "mask_empty_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  },
+  "soul_orb": {
+   "frames": [
+    "soul_orb_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  },
+  "hit_fx": {
+   "frames": [
+    "hit_fx_0.png"
+   ],
+   "fps": 1,
+   "loop": false,
+   "faces": -1
+  }
+ },
+ "images": {
+  "menu_bg": "menu_bg.png",
+  "title": "title.png",
+  "beam": "beam.png",
+  "fog": "fog.png",
+  "soft": "soft.png",
+  "pointer_00": "pointer_00.png",
+  "pointer_01": "pointer_01.png",
+  "pointer_02": "pointer_02.png",
+  "pointer_03": "pointer_03.png",
+  "pointer_04": "pointer_04.png",
+  "pointer_05": "pointer_05.png",
+  "pointer_06": "pointer_06.png",
+  "pointer_07": "pointer_07.png",
+  "pointer_08": "pointer_08.png",
+  "pointer_09": "pointer_09.png",
+  "pointer_10": "pointer_10.png"
+ },
+ "env": {
+  "floor": [
+   "env_floor_0.png",
+   "env_floor_1.png",
+   "env_floor_2.png"
+  ],
+  "rock": [
+   "env_rock_0.png",
+   "env_rock_1.png",
+   "env_rock_2.png",
+   "env_rock_3.png",
+   "env_rock_4.png",
+   "env_rock_5.png",
+   "env_rock_6.png",
+   "env_rock_7.png",
+   "env_rock_8.png",
+   "env_rock_9.png",
+   "env_rock_10.png"
+  ],
+  "bg": [
+   "env_bg_0.png",
+   "env_bg_1.png",
+   "env_bg_2.png",
+   "env_bg_3.png",
+   "env_bg_4.png",
+   "env_bg_5.png",
+   "env_bg_6.png",
+   "env_bg_7.png",
+   "env_bg_8.png"
+  ],
+  "deco": [
+   "env_deco_0.png",
+   "env_deco_1.png",
+   "env_deco_2.png",
+   "env_deco_3.png",
+   "env_deco_4.png",
+   "env_deco_5.png"
+  ]
+ }
+}

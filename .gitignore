@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+app/build/
+# Recursos originales (2.5 GB) y salidas intermedias de las herramientas: no se suben al repositorio.
+# app/assets/ (lo que el juego usa) sí se versiona; se regenera con tools/build_assets.py
+Sprites/
+work/
+# Guía del curso (documento del docente): no se publica en el repositorio
+*.pdf
