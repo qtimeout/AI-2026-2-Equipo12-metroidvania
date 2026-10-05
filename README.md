@@ -48,9 +48,3 @@ Laboratorio IA (`python app/benchmark.py --rounds 100`): un solo Husk saltador, 
 - **Benchmark en consola:** `python app/benchmark.py --rounds 100 --seed 2026 --budget 200`.
 - **Regenerar el arte** (requiere `Sprites/`, que no se versiona): `python tools/build_assets.py`. Para validar un nivel: `python tools/check_level.py 1`.
 - **Controles:** flechas/A-D para moverse, Espacio/Z para saltar, X para atacar y C para curarse (gasta alma). Las teclas `1..4` asignan una técnica a todos los enemigos y `0` activa el modo mixto, `M` muestra u oculta la tabla, `G` el grafo, `TAB` alterna entre partida y laboratorio (`F` cambia la velocidad) y `ESC` vuelve al menú.
-
-## Uso de IA generativa
-El código (`app/game/*`, `app/main.py`, `app/benchmark.py`, `tools/*`) se generó con Claude Code (Anthropic). Modificaciones del equipo: _pendiente_. El arte (Knight, Husk, escenarios de King's Pass, menú, HUD) es de *Hollow Knight* © Team Cherry y se usa solo con fines académicos; `tools/build_assets.py` lo recorta de los atlas originales.
-
-## Roles
-_Integrante: qué hizo (enlace a commits)._
