@@ -1,0 +1,70 @@
+{
+ "niveles_entrenamiento": [
+  1,
+  2,
+  3
+ ],
+ "muestras": 78322,
+ "entrenamiento": 62657,
+ "prueba": 15665,
+ "clase_mayoritaria": 0.4469,
+ "modelos": {
+  "KNN": {
+   "archivo": "knn.json",
+   "hiperparametros": {
+    "n_neighbors": 1,
+    "weights": "uniform"
+   },
+   "cv_exactitud": [
+    0.9852,
+    0.0007
+   ],
+   "cv_f1_macro": [
+    0.964,
+    0.016
+   ],
+   "prueba_exactitud": 0.9888,
+   "prueba_f1_macro": 0.9732,
+   "entrenamiento_s": 30.8
+  },
+  "Árbol": {
+   "archivo": "tree.json",
+   "hiperparametros": {
+    "max_depth": null,
+    "min_samples_leaf": 1
+   },
+   "cv_exactitud": [
+    0.9879,
+    0.0008
+   ],
+   "cv_f1_macro": [
+    0.9625,
+    0.0159
+   ],
+   "prueba_exactitud": 0.991,
+   "prueba_f1_macro": 0.9729,
+   "entrenamiento_s": 2.7
+  },
+  "MLP": {
+   "archivo": "mlp.json",
+   "hiperparametros": {
+    "alpha": 0.0001,
+    "hidden_layer_sizes": [
+     64,
+     32
+    ]
+   },
+   "cv_exactitud": [
+    0.9708,
+    0.0028
+   ],
+   "cv_f1_macro": [
+    0.9079,
+    0.0188
+   ],
+   "prueba_exactitud": 0.9693,
+   "prueba_f1_macro": 0.9133,
+   "entrenamiento_s": 80.2
+  }
+ }
+}

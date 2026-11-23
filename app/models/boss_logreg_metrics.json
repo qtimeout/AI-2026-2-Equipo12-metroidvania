@@ -1,0 +1,31 @@
+{
+ "semilla_datos": 7,
+ "rondas": 60,
+ "ataques": 1896,
+ "modelos": {
+  "lanza": {
+   "muestras": 682,
+   "acierto_real": 0.694,
+   "cv_exactitud": 0.836,
+   "cv_auc": 0.826,
+   "cv_brier": 0.127,
+   "brier_base": 0.213
+  },
+  "embestida": {
+   "muestras": 627,
+   "acierto_real": 0.63,
+   "cv_exactitud": 0.723,
+   "cv_auc": 0.755,
+   "cv_brier": 0.184,
+   "brier_base": 0.233
+  },
+  "salto": {
+   "muestras": 587,
+   "acierto_real": 0.535,
+   "cv_exactitud": 0.54,
+   "cv_auc": 0.569,
+   "cv_brier": 0.245,
+   "brier_base": 0.249
+  }
+ }
+}

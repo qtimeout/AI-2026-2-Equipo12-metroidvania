@@ -21,7 +21,14 @@ class App:
         # opciones del menú: MIX (técnica al azar por enemigo) + cada técnica para todos los enemigos
         self.techniques = [MIX] + list(build_agents(SEED))
         self.technique = MIX
+        self.level = 1                      # nivel inicial de la partida y nivel del laboratorio
+        self.boss_strategy = "Utilidad (aprendida)"
         self.running = True
+
+    def cycle_level(self, step):
+        from game.level import LEVELS
+        levels = sorted(LEVELS)
+        self.level = levels[(levels.index(self.level) + step) % len(levels)]
 
     def cycle_technique(self, step):
         i = self.techniques.index(self.technique)

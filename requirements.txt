@@ -1,2 +1,4 @@
 pygame-ce>=2.5
 pygbag>=0.9
+# solo para entrenar los modelos (tools/train_models.py); el juego no lo necesita
+scikit-learn>=1.5

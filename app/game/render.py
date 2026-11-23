@@ -1,23 +1,30 @@
 """Dibujo del mundo con pygame. Solo LEE el estado de World; nunca lo modifica."""
+import math
 import random
 
 import pygame
 
 from .assets import edge_fade, scale, tint, whiten
+from .background import additive
 from .config import ATTACK_TIME, PLAYER_W, TILE
 
 ROCK_BASE = (5, 7, 13)
 NODE = (90, 110, 160)
 # color por técnica: etiquetas sobre los enemigos y rutas planificadas (tecla G)
 TECH_COLORS = {"Aleatorio (base)": (170, 175, 190), "Reflejo": (130, 220, 150), "BFS": (110, 170, 255),
-               "A*": (245, 200, 90)}
+               "A*": (245, 200, 90), "KNN": (225, 130, 225), "Árbol": (110, 220, 210), "MLP": (245, 145, 100)}
 SHORT = {"Aleatorio (base)": "Base: aleatorio"}     # etiqueta sobre el enemigo (técnica, no tipo)
 
 
 class WorldRenderer:
     def __init__(self, assets, level, graph, seed=11):
         self.a, self.level, self.graph = assets, level, graph
+        self.env = assets.env[level.theme]
+        self.lights = []                 # (x, y) de faroles: brillo cálido aditivo que titila
         self.terrain = self._build_terrain(random.Random(seed))
+        soft = assets.images["soft"]
+        self.glow = [additive(scale(soft, 130 / soft.get_width()), (255, 200, 130), k) for k in (0.16, 0.22, 0.28)]
+        self.exit_img, self.exit_glow = self._build_exit()
         self.show_graph = False
         self.fx = []                     # (anim_surface, x, y, ttl, max_ttl)
         self.sparks = []                 # partículas de impacto [x, y, vx, vy, ttl]
@@ -33,8 +40,8 @@ class WorldRenderer:
     def _build_terrain(self, rng):
         lv = self.level
         surf = pygame.Surface((lv.w * TILE, lv.h * TILE), pygame.SRCALPHA)
-        rocks = [edge_fade(img, 0.12) for img in self.a.env["rock"]]
-        floors = self.a.env["floor"]
+        rocks = [edge_fade(img, 0.12) for img in self.env["rock"]]
+        floors = self.env["floor"]
         boundary = []
         for r in range(lv.h):
             for c in range(lv.w):
@@ -71,9 +78,34 @@ class WorldRenderer:
                     w = (c - c0) * TILE + 18
                     img = edge_fade(pygame.transform.smoothscale(rng.choice(floors), (w, 30)), 0.05)
                     surf.blit(img, (c0 * TILE - 9, r * TILE - 9))
+                    if "lamp" in self.env and c - c0 >= 4 and rng.random() < 0.6:
+                        self._place_lamp(surf, rng, rng.randint(c0 + 1, c - 2), r)
                 else:
                     c += 1
         return surf
+
+    def _place_lamp(self, surf, rng, c, r):
+        """Farol apoyado sobre el suelo (parte del terreno estático) + punto de luz para el brillo."""
+        if (c, r - 1) == self.level.exit:
+            return
+        img = rng.choice(self.env["lamp"])
+        img = scale(img, TILE * 2.8 / img.get_height())
+        x, y = c * TILE + TILE / 2 - img.get_width() / 2, r * TILE - img.get_height() + 4
+        surf.blit(img, (x, y))
+        self.lights.append((x + img.get_width() / 2, y + img.get_height() * 0.3))
+
+    def _build_exit(self):
+        if self.level.exit is None:
+            return None, None
+        img = self.env["exit"][0]
+        # quedarse solo con la pieza principal: el recorte del atlas trae fragmentos sueltos de sprites vecinos
+        keep = pygame.mask.from_surface(img, 30).connected_component()
+        img = img.copy()
+        img.blit(keep.to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0)), (0, 0),
+                 special_flags=pygame.BLEND_RGBA_MULT)
+        k = min(TILE * 3.6 / img.get_height(), TILE * 4.2 / img.get_width())
+        soft = self.a.images["soft"]
+        return scale(img, k), [additive(scale(soft, 200 / soft.get_width()), (190, 215, 255), i) for i in (0.10, 0.15, 0.20)]
 
     # ---------- por frame ----------
     def consume_events(self, world, camera):
@@ -116,6 +148,12 @@ class WorldRenderer:
         vx, vy = view
         sw, sh = screen.get_size()
         screen.blit(self.terrain, (0, 0), (vx, vy, sw, sh))
+        self._draw_exit(screen, vx, vy, t)
+        for i, (lx, ly) in enumerate(self.lights):
+            g = self.glow[int((math.sin(t * 3.1 + i * 1.7) + math.sin(t * 7.3 + i)) * 0.5 + 1.0) % 3]
+            sx, sy = lx - vx - g.get_width() / 2, ly - vy - g.get_height() / 2
+            if -g.get_width() < sx < sw and -g.get_height() < sy < sh:
+                screen.blit(g, (sx, sy), special_flags=pygame.BLEND_RGB_ADD)
         if self.show_graph:
             self._draw_graph(screen, world, vx, vy)
         for slot in world.slots:
@@ -130,6 +168,18 @@ class WorldRenderer:
             screen.blit(img, (x - vx - img.get_width() / 2, y - vy - img.get_height() / 2))
         for x, y, _, _, ttl in self.sparks:
             pygame.draw.circle(screen, (235, 240, 255), (x - vx, y - vy), max(1, int(ttl * 8)))
+
+    def _draw_exit(self, screen, vx, vy, t):
+        """Puerta de salida: tocarla lleva al nivel siguiente. Un halo que pulsa la señala de lejos."""
+        if self.exit_img is None:
+            return
+        c, r = self.level.exit
+        img = self.exit_img
+        cx, base = c * TILE + TILE / 2 - vx, (r + 1) * TILE - vy
+        g = self.exit_glow[int((math.sin(t * 2.0) + 1) * 1.49)]
+        screen.blit(g, (cx - g.get_width() / 2, base - img.get_height() * 0.45 - g.get_height() / 2),
+                    special_flags=pygame.BLEND_RGB_ADD)
+        screen.blit(img, (cx - img.get_width() / 2, base - img.get_height() + 6))
 
     def _sprite(self, img, flash):
         if not flash:

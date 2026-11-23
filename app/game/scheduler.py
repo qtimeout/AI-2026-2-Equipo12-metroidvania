@@ -44,8 +44,8 @@ class AIScheduler:
         t0 = time.perf_counter()
         try:
             for _ in range(self.budget):
-                next(self._gen)
-                self._expanded += 1
+                if next(self._gen) is None:     # `yield` simple = nodo expandido; `yield PAUSE` = trabajo sin búsqueda (KNN)
+                    self._expanded += 1
         except StopIteration as stop:
             self._cpu += (time.perf_counter() - t0) * 1000
             d = Decision(stop.value, self._expanded, self._cpu, self._frames)

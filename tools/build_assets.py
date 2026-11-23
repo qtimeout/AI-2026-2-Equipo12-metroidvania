@@ -27,10 +27,11 @@ ATLASES = {
     "hud": (os.path.join(SRC, "Inventory & UI", "HUD main - atlas0.png"), 0.8),
     "whusk": (os.path.join(SRC, "Enemies & Corpses", "Wandering Husk - atlas0 #038017.png"), 0.6),
     "horn": (os.path.join(SRC, "Enemies & Corpses", "Husk Hornhead - atlas0 #041020.png"), 0.5),
+    "moss": (os.path.join(SRC, "Enemies & Corpses", "Mosskin, Volatile Mosskin - atlas0 #03709.png"), 0.55),
 }
 
 # hacia dónde mira cada atlas en los sprites originales (-1 izquierda, 1 derecha)
-FACES = {"knight": -1, "husk": -1, "whusk": 1, "horn": 1, "hud": -1}
+FACES = {"knight": -1, "husk": -1, "whusk": 1, "horn": 1, "hud": -1, "moss": -1, "hornet": -1, "thread": -1}
 
 # animación -> (atlas, índices, fps, loop, rotación)
 #   rotación: True = enderezar si el recorte es apaisado (Unity lo empaquetó acostado),
@@ -58,10 +59,37 @@ ANIMS = {
     "horn_leap": ("horn", [6, 7, 25, 32], 8, False, True),
     "horn_hurt": ("horn", [0], 1, False, True),
     "horn_death": ("horn", [14], 1, False, True),
+    "moss_walk": ("moss", [7, 8, 11, 13, 18, 21], 9, True, True),
+    "moss_idle": ("moss", [7], 1, True, True),
+    "moss_leap": ("moss", [22, 24, 25, 28], 8, False, True),
+    "moss_hurt": ("moss", [38], 1, False, True),
+    "moss_death": ("moss", [1, 47], 3, False, True),
+    "mossv_walk": ("moss", [34, 37, 39, 41, 44, 48], 10, True, True),
+    "mossv_idle": ("moss", [34], 1, True, True),
+    "mossv_leap": ("moss", [36, 43, 45, 54], 8, False, True),
+    "mossv_hurt": ("moss", [38], 1, False, True),
+    "mossv_death": ("moss", [0, 3, 5], 5, False, True),
     "mask_full": ("hud", [30], 1, False, False),
     "mask_empty": ("hud", [39], 1, False, True),
     "soul_orb": ("hud", [157], 1, False, False),
     "hit_fx": ("hud", [42], 1, False, False),
+}
+
+# Animaciones a partir de archivos sueltos que comparten lienzo (Hornet): se recortan TODAS con el mismo
+# rectángulo (unión de sus siluetas) para que los fotogramas no salten al animar.
+# grupo -> (escala, {animación: (prefijo de archivo, índices, fps, loop)})
+HORNET_DIR = os.path.join(SRC, "Bosses", "Hornet")
+FILE_ANIMS = {
+    "hornet": (0.55, {
+        "hornet_idle": ("Hornet - idle", [0, 1], 4, True),
+        "hornet_jump": ("Hornet - jump", list(range(10)), 16, False),
+        "hornet_throw": ("Hornet - throw_side", list(range(8)), 14, False),
+        "hornet_land": ("Hornet - hard_land", list(range(6)), 12, False),
+        "hornet_dash": ("Hornet - harpoon_side", [0, 1], 10, True),
+    }),
+    "thread": (0.7, {
+        "hornet_thread": ("Hornet weapon - harpoon_thread_v02", list(range(2, 9)), 16, False),
+    }),
 }
 
 # archivo suelto -> (ruta de origen, escala)
@@ -75,17 +103,47 @@ SINGLES = {
 for i in range(11):
     SINGLES[f"pointer_{i:02d}"] = (os.path.join(SRC, "Inventory & UI", "Pointers", f"main_menu_pointer_anim{i:04d}.png"), 0.6)
 
-# piezas de King's Pass agrupadas por uso en el escenario
-ENV = {
-    "floor": ["tut_land_floor_0001_03", "tut_land_floor_0002_02", "tut_land_floor_0003_01"],
-    "rock": ["tut_rocks_0004_05", "tut_rocks_0007_02", "tut_edge_02_0000_04", "tut_edge_02_0001_03",
-             "tut_wall_r_0000_06", "tut_wall_r_0001_05", "tut_wall_r_0002_04", "tut_wall_r_0004_02",
-             "tut_wall_r_0005_01", "tut_wall_l_0000s_0003_Color-Balance-1", "tut_wall_l_0000s_0004_Color-Balance-1"],
-    "bg": ["tut_BG_set_01_0000_05", "tut_BG_set_01_0001_04", "tut_BG_set_01_0002_03", "tut_BG_set_01_0003_02",
-           "tut_BG_set_02_0000_06", "tut_BG_set_02_0001_05", "tut_BG_set_02_0003_03", "tut_BG_set_02_0004_02",
-           "tut_BG_set_02_0005_01"],
-    "deco": ["tutorial_poles_0002_b2", "tutorial_poles_0003_b1", "tutorial_poles_0007_a2", "tutorial_poles_0008_a",
-             "Hallownest_Gate_0000_20", "tut_door_large_0008_03"],
+CR = os.path.join(SRC, "Architecture & Environment", "Area specfic architecture", "Forgotten Crossroads")
+GP = os.path.join(SRC, "Architecture & Environment", "Area specfic architecture", "Greenpath")
+
+# Piezas de escenario por tema (una zona de HK por nivel), agrupadas por uso:
+#   floor = borde superior de las plataformas, rock = contorno de las rocas, bg = capas de fondo,
+#   deco = capa cercana, exit = puerta de salida, lamp = faroles con luz (opcional)
+# Una entrada puede ser (carpeta, prefijo) para tomar la pieza de otra zona.
+THEMES = {
+    "kingspass": (KP, {
+        "floor": ["tut_land_floor_0001_03", "tut_land_floor_0002_02", "tut_land_floor_0003_01"],
+        "rock": ["tut_rocks_0004_05", "tut_rocks_0007_02", "tut_edge_02_0000_04", "tut_edge_02_0001_03",
+                 "tut_wall_r_0000_06", "tut_wall_r_0001_05", "tut_wall_r_0002_04", "tut_wall_r_0004_02",
+                 "tut_wall_r_0005_01", "tut_wall_l_0000s_0003_Color-Balance-1", "tut_wall_l_0000s_0004_Color-Balance-1"],
+        "bg": ["tut_BG_set_01_0000_05", "tut_BG_set_01_0001_04", "tut_BG_set_01_0002_03", "tut_BG_set_01_0003_02",
+               "tut_BG_set_02_0000_06", "tut_BG_set_02_0001_05", "tut_BG_set_02_0003_03", "tut_BG_set_02_0004_02",
+               "tut_BG_set_02_0005_01"],
+        "deco": ["tutorial_poles_0002_b2", "tutorial_poles_0003_b1", "tutorial_poles_0007_a2", "tutorial_poles_0008_a",
+                 "Hallownest_Gate_0000_20", "tut_door_large_0008_03"],
+        "exit": [(CR, "cd_arch_01")],
+    }),
+    "crossroads": (CR, {
+        "floor": ["cd_floor_02", "cd_floor_highway_05", "fg_ground_faces"],
+        "rock": ["rocks_BG_01", "rocks_BG_02", "rocks_right_left_BG_01", "rocks_right_left_BG_02",
+                 "rocks_right_left_BG_03", "floor_FG_rock_02_0000", "highway_01_layered_0003"],
+        "bg": ["cd_mid_wall_detail_01", "cd_mid_wall_detail_02", "cd_mid_wall_detail_03", "statue_01", "statue_03",
+               "cd_pillar_01", "cd_wall_01", "cd_wall_04", "cd_archway_01"],
+        "deco": ["cd_pillar_01", "cd_wall_04", "statue_03", "cd_archway_02", "cd_pillar_03"],
+        "exit": ["cd_arch_01"],
+        "lamp": ["lamp_01", "lamp_02"],
+    }),
+    "greenpath": (GP, {
+        "floor": ["floor_layered_0000_04_green", "floor_layered_0001_03_green", "floor_layered_0002_02_green",
+                  "floor_layered_0003_01_green", "slug_floor"],
+        "rock": ["fungd_rock_01_0000", "fungd_rock_01_0001", "fungd_rock_01_0002", "fung_new_0085_c",
+                 "fung_new_0127_02", "fung_new_0128_01", "fungd_rock_03_0001"],
+        "bg": ["fung_new_0083_c", "fung_new_0084_c", "fung_new_0089_a", "fung_new_0091_d", "fung_pillar_wall_0000",
+               "fung_pillar_wall_0001", "thorn_mid_back.png", "thorn_mid_back_02", "hunter_scenery_0003"],
+        "deco": ["hunter_scenery_0000", "hunter_scenery_0001", "fung_new_0092_d", "vine_platform_01", "thorn_plinth"],
+        "exit": [(CR, "cd_arch_01")],
+        "lamp": ["fung_pod_01", "fung_pod_02.png"],
+    }),
 }
 ENV_SCALE = 0.5
 
@@ -97,11 +155,11 @@ def scaled(img, k):
     return pygame.transform.smoothscale(img, (max(1, round(w * k)), max(1, round(h * k))))
 
 
-def find_kp(stem):
-    for name in os.listdir(KP):
+def find(folder, stem):
+    for name in sorted(os.listdir(folder)):
         if name.startswith(stem) and name.lower().endswith(".png"):
-            return os.path.join(KP, name)
-    raise FileNotFoundError(stem)
+            return os.path.join(folder, name)
+    raise FileNotFoundError(f"{stem} en {folder}")
 
 
 def main():
@@ -128,19 +186,37 @@ def main():
             files.append(fname)
         manifest["anims"][name] = {"frames": files, "fps": fps, "loop": loop, "faces": FACES[atlas]}
 
+    for group, (k, anims) in FILE_ANIMS.items():
+        frames = {name: [pygame.image.load(os.path.join(HORNET_DIR, f"{prefix}{i:04d}.png")).convert_alpha()
+                         for i in ids] for name, (prefix, ids, _, _) in anims.items()}
+        rects = [pygame.mask.from_surface(img, 8).get_bounding_rects() for imgs in frames.values() for img in imgs]
+        union = [r for rs in rects for r in rs]
+        box = union[0].unionall(union[1:]).inflate(4, 4)
+        for name, (_, _, fps, loop) in anims.items():
+            files = []
+            for n, img in enumerate(frames[name]):
+                crop = scaled(img.subsurface(box.clip(img.get_rect())).copy(), k)
+                fname = f"{name}_{n}.png"
+                pygame.image.save(crop, os.path.join(OUT, fname))
+                files.append(fname)
+            manifest["anims"][name] = {"frames": files, "fps": fps, "loop": loop, "faces": FACES[group]}
+
     for name, (path, k) in SINGLES.items():
         img = scaled(pygame.image.load(path).convert_alpha(), k)
         pygame.image.save(img, os.path.join(OUT, f"{name}.png"))
         manifest["images"][name] = f"{name}.png"
 
-    for group, stems in ENV.items():
-        files = []
-        for stem in stems:
-            img = scaled(pygame.image.load(find_kp(stem)).convert_alpha(), ENV_SCALE)
-            fname = f"env_{group}_{len(files)}.png"
-            pygame.image.save(img, os.path.join(OUT, fname))
-            files.append(fname)
-        manifest["env"][group] = files
+    for theme, (folder, groups) in THEMES.items():
+        manifest["env"][theme] = {}
+        for group, stems in groups.items():
+            files = []
+            for stem in stems:
+                src_dir, stem = stem if isinstance(stem, tuple) else (folder, stem)
+                img = scaled(pygame.image.load(find(src_dir, stem)).convert_alpha(), ENV_SCALE)
+                fname = f"env_{theme}_{group}_{len(files)}.png"
+                pygame.image.save(img, os.path.join(OUT, fname))
+                files.append(fname)
+            manifest["env"][theme][group] = files
 
     with open(os.path.join(OUT, "manifest.json"), "w") as f:
         json.dump(manifest, f, indent=1)

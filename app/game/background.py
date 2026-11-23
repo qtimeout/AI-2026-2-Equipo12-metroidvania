@@ -54,11 +54,26 @@ class Layer:
                 screen.blit(surf, (sx, sy))
 
 
+# Paleta por tema: cielo (arriba, abajo) y tinte de cada capa. Cruces Olvidados es más gris y cálida (faroles).
+PALETTES = {
+    "kingspass": {"sky": ((5, 8, 18), (20, 30, 52)), "far": (70, 95, 140), "mid": (55, 72, 110), "near": (30, 38, 60),
+                  "beam": (150, 180, 230), "fog": (120, 145, 190), "mote": (190, 215, 255)},
+    "greenpath": {"sky": ((4, 12, 12), (16, 40, 34)), "far": (70, 125, 110), "mid": (52, 96, 82), "near": (26, 50, 44),
+                  "beam": (170, 230, 190), "fog": (120, 170, 150), "mote": (200, 255, 210)},
+    "arena": {"sky": ((10, 5, 9), (42, 20, 30)), "far": (120, 80, 96), "mid": (90, 56, 70), "near": (44, 26, 34),
+              "beam": (235, 175, 185), "fog": (170, 120, 135), "mote": (255, 205, 215)},
+    "crossroads": {"sky": ((7, 8, 13), (30, 30, 42)), "far": (100, 102, 128), "mid": (72, 74, 98), "near": (38, 39, 54),
+                   "beam": (215, 195, 155), "fog": (140, 138, 160), "mote": (255, 222, 170)},
+}
+
+
 class Backdrop:
-    def __init__(self, assets, world_w, world_h, seed=7):
+    def __init__(self, assets, world_w, world_h, theme="kingspass", palette=None, seed=7):
         rng = random.Random(seed)
-        self.sky = vertical_gradient(SCREEN_W, SCREEN_H, (5, 8, 18), (20, 30, 52))
-        bg, deco, rocks = assets.env["bg"], assets.env["deco"], assets.env["rock"]
+        pal = PALETTES[palette or theme]
+        self.sky = vertical_gradient(SCREEN_W, SCREEN_H, *pal["sky"])
+        env = assets.env[theme]
+        bg, deco, rocks = env["bg"], env["deco"], env["rock"]
 
         def spread(parallax, pieces, count, size, rgb, alpha, blur_k, y_band):
             span_w = world_w * parallax + SCREEN_W
@@ -74,9 +89,9 @@ class Backdrop:
                 items.append((img, x, y))
             return items
 
-        self.far = Layer(0.2, spread(0.2, bg, 16, (1.8, 2.8), (70, 95, 140), 90, 6, (0.55, 1.05)))
-        self.mid = Layer(0.45, spread(0.45, bg, 20, (1.3, 2.0), (55, 72, 110), 170, 3, (0.6, 1.05)))
-        self.near = Layer(0.75, spread(0.75, deco + bg[:3], 18, (1.1, 1.7), (30, 38, 60), 235, 2, (0.75, 1.05)))
+        self.far = Layer(0.2, spread(0.2, bg, 16, (1.8, 2.8), pal["far"], 90, 6, (0.55, 1.05)))
+        self.mid = Layer(0.45, spread(0.45, bg, 20, (1.3, 2.0), pal["mid"], 170, 3, (0.6, 1.05)))
+        self.near = Layer(0.75, spread(0.75, deco + bg[:3], 18, (1.1, 1.7), pal["near"], 235, 2, (0.75, 1.05)))
         self.front = Layer(1.35, spread(1.35, rocks, 10, (2.6, 3.6), (4, 5, 9), 255, 3, (1.0, 1.25)))
 
         beam = assets.images["beam"]
@@ -84,16 +99,16 @@ class Backdrop:
         for i in range(7):
             w = rng.randint(140, 300)
             img = pygame.transform.smoothscale(beam, (w, SCREEN_H + 300))
-            img = additive(img, (150, 180, 230), rng.uniform(0.35, 0.6))
+            img = additive(img, pal["beam"], rng.uniform(0.35, 0.6))
             self.beams.append((img, rng.uniform(0, world_w * 0.4 + SCREEN_W), rng.uniform(0, math.tau)))
 
         fog = assets.images["fog"]
-        self.fog_back = tint(pygame.transform.smoothscale(fog, (1600, 520)), (120, 145, 190), 80)
-        self.fog_front = tint(pygame.transform.smoothscale(fog, (1900, 600)), (90, 110, 150), 55)
+        self.fog_back = tint(pygame.transform.smoothscale(fog, (1600, 520)), pal["fog"], 80)
+        self.fog_front = tint(pygame.transform.smoothscale(fog, (1900, 600)), [int(c * 0.75) for c in pal["fog"]], 55)
 
         soft = assets.images["soft"]
         # 5 tamaños x 4 intensidades (titileo sin set_alpha, que no aplica en blits aditivos)
-        self.motes = [[additive(scale(soft, s / soft.get_width()), (190, 215, 255), k) for k in (0.25, 0.5, 0.75, 1.0)]
+        self.motes = [[additive(scale(soft, s / soft.get_width()), pal["mote"], k) for k in (0.25, 0.5, 0.75, 1.0)]
                       for s in (5, 7, 9, 12, 16)]
         self.particles = [(rng.uniform(0, SCREEN_W), rng.uniform(0, SCREEN_H), rng.randrange(5),
                            rng.uniform(6, 22), rng.uniform(0, math.tau), rng.uniform(0.6, 1.2)) for _ in range(70)]

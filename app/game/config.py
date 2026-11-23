@@ -37,8 +37,17 @@ ENEMY_TYPES = {
     "saltador": {"name": "Husk saltador", "anim": "husk", "speed": ENEMY_SPEED, "hp": 3},
     "errante": {"name": "Husk errante", "anim": "whusk", "speed": 4.5, "hp": 2},
     "cornudo": {"name": "Husk cornudo", "anim": "horn", "speed": 5.0, "hp": 4},
+    "musgoso": {"name": "Musgoso", "anim": "moss", "speed": 4.0, "hp": 3},
+    "volatil": {"name": "Musgoso volátil", "anim": "mossv", "speed": 7.5, "hp": 1},
 }
-SPAWN_CHARS = {"E": "saltador", "S": "saltador", "W": "errante", "H": "cornudo"}   # "E" = spawn del laboratorio
+SPAWN_CHARS = {"E": "saltador", "S": "saltador", "W": "errante", "H": "cornudo",
+               "M": "musgoso", "V": "volatil"}                                    # "E" = spawn del laboratorio
+
+# Jefe final (nivel 4): Hornet. La IA del jefe elige QUÉ ataque usar (ver game/boss.py).
+BOSS_HP = 24
+BOSS_W, BOSS_H = 50, 104
+BOSS_COOLDOWN = 0.55      # s de pausa entre ataques
+BOSS_LAB_ROUND = 60.0     # s simulados por corrida en el laboratorio del jefe
 
 # IA
 AI_BUDGET = 200           # nodos que el agente puede expandir por frame antes de ceder el control

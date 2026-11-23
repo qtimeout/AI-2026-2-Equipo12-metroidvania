@@ -12,7 +12,7 @@ import random
 
 from .agents import build_agents
 from .config import (AI_BUDGET, ENEMY_RECOVER, ENEMY_RESPAWN, ENEMY_STUN, EPISODE_TIMEOUT,
-                     MIN_TARGET_DIST, SEED, SOUL_PER_HIT)
+                     MIN_TARGET_DIST, SEED, SOUL_PER_HIT, TILE)
 from .enemy import Enemy
 from .metrics import Metrics
 from .player import Player
@@ -49,6 +49,7 @@ class World:
         self.mode = mode
         self.rng = random.Random(seed)
         self.events = []          # eventos visuales para el render (golpes, muertes); no afectan la lógica
+        self.finished = False     # el jugador llegó a la salida del nivel (solo en partida)
         self._build_targets()
         self.auto_episode = 0
         self.reset_episode()
@@ -148,6 +149,9 @@ class World:
                 self.events.append(("player_dead", self.player.rect))
                 self.reset_episode()
                 return
+            if self.level.exit and _overlap(self.player.rect, _cell_rect(self.level.exit)):
+                self.finished = True
+                return
 
         for slot in list(self.slots):
             e = slot.enemy
@@ -210,6 +214,11 @@ class World:
             self.events.append(("hit_player", p.rect))
             e.stun = ENEMY_RECOVER
             self._end_episode(slot, reached=True)
+
+
+def _cell_rect(cell):
+    c, r = cell
+    return (c * TILE, r * TILE, TILE, TILE)
 
 
 def _overlap(a, b):

@@ -12,10 +12,11 @@ from game.navgraph import NavGraph  # noqa: E402
 
 
 def main(n=1):
-    lv = Level(LEVELS[n])
+    lv = Level(n)
     g = NavGraph(lv)
-    fwd = g.reachable_from(lv.enemy_spawn)
-    back = {node for node in g.nodes if lv.enemy_spawn in g.reachable_from(node)}
+    ref = lv.enemy_spawn or lv.player_spawn          # el nivel del jefe no tiene spawn 'E'
+    fwd = g.reachable_from(ref)
+    back = {node for node in g.nodes if ref in g.reachable_from(node)}
     low = {node for node in g.nodes if lv.solid(node[0], node[1] - 1)}
     bad = [node for node in g.nodes if node not in fwd or node not in back]
     for r in range(lv.h):
@@ -30,7 +31,7 @@ def main(n=1):
             else:
                 line += "."
         print(line)
-    ok = not bad and not low and lv.player_spawn in g.edges and lv.enemy_spawn in g.edges
+    ok = not bad and not low and lv.player_spawn in g.edges and ref in g.edges
     print(f"\nNivel {n}: {len(g.nodes)} nodos, {sum(len(v) for v in g.edges.values())} aristas, "
           f"{len(bad)} sin conexión, {len(low)} sin altura -> {'OK' if ok else 'REVISAR'}")
     return ok

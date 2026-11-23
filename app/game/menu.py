@@ -42,7 +42,8 @@ class MenuScene:
     @property
     def items(self):
         tech = self.app.technique
-        items = [("Comenzar partida", "play"), ("Laboratorio IA", "lab"), (f"Enemigos: {tech}", "tech")]
+        items = [("Comenzar partida", "play"), ("Laboratorio IA", "lab"), (f"Enemigos: {tech}", "tech"),
+                 (f"Nivel: {self.app.level}", "level")]
         if not WEB:
             items.append(("Salir", "quit"))
         return items
@@ -55,12 +56,18 @@ class MenuScene:
             self.sel, self.sel_t = (self.sel - 1) % n, 0.0
         elif ev.key in (pygame.K_DOWN, pygame.K_s):
             self.sel, self.sel_t = (self.sel + 1) % n, 0.0
-        elif ev.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d) and self.items[self.sel][1] == "tech":
-            self.app.cycle_technique(1 if ev.key in (pygame.K_RIGHT, pygame.K_d) else -1)
+        elif ev.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d) and self.items[self.sel][1] in ("tech", "level"):
+            step = 1 if ev.key in (pygame.K_RIGHT, pygame.K_d) else -1
+            if self.items[self.sel][1] == "tech":
+                self.app.cycle_technique(step)
+            else:
+                self.app.cycle_level(step)
         elif ev.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_z):
             action = self.items[self.sel][1]
             if action == "tech":
                 self.app.cycle_technique(1)
+            elif action == "level":
+                self.app.cycle_level(1)
             elif action == "quit":
                 self.app.running = False
             else:
@@ -94,11 +101,11 @@ class MenuScene:
         tx = SCREEN_W / 2 - self.title.get_width() / 2
         screen.blit(self.title, (tx, 60 + math.sin(t * 0.8) * 4))
 
-        base_y = 410
+        base_y = 380
         for i, (label, _) in enumerate(self.items):
             selected = i == self.sel
             img = self.f_item.render(label, True, (245, 245, 250) if selected else (150, 156, 175))
-            x, y = SCREEN_W / 2 - img.get_width() / 2, base_y + i * 58
+            x, y = SCREEN_W / 2 - img.get_width() / 2, base_y + i * 52
             screen.blit(img, (x, y))
             if selected:
                 k = min(10, int(self.sel_t / 0.035))
@@ -107,7 +114,7 @@ class MenuScene:
                 screen.blit(pr, (x - pl.get_width() - 16, cy))
                 screen.blit(pl, (x + img.get_width() + 16, cy))
 
-        hint = "Flechas: elegir · Enter: aceptar · Izq/Der en «Enemigos» elige la IA de todos los enemigos"
+        hint = "Flechas: elegir · Enter: aceptar · Izq/Der cambia «Enemigos» (IA) y «Nivel» (partida y laboratorio)"
         foot = "Agentes Inteligentes · USIL 2026 — proyecto académico. Arte: Hollow Knight © Team Cherry"
         for txt, y in ((hint, SCREEN_H - 58), (foot, SCREEN_H - 32)):
             img = self.f_small.render(txt, True, (130, 136, 158))

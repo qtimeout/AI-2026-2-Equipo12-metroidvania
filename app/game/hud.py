@@ -1,9 +1,13 @@
 """HUD estilo Hollow Knight (orbe de alma + máscaras) y la tabla comparativa de técnicas en pantalla."""
+import json
+import os
+
 import pygame
 
 from .assets import scale
 from .config import EPISODE_TIMEOUT, PLAYER_MAX_HP, SCREEN_H, SCREEN_W
 from .metrics import HEADERS
+from .ml.models import MODEL_DIR
 
 TEXT = (232, 236, 245)
 MUTED = (150, 158, 182)
@@ -22,6 +26,8 @@ class Hud:
         self.show_table = True
         self._shown_hp = PLAYER_MAX_HP
         self.hit_flash = 0.0
+        path = os.path.join(MODEL_DIR, "metrics.json")
+        self.ml_report = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else None
 
     def update(self, dt, world):
         self.hit_flash = max(0.0, self.hit_flash - dt * 2.5)
@@ -103,6 +109,36 @@ class Hud:
                 screen.blit(self.f_small.render(txt, True, col), (x + 12 + lw + j * cw, yy))
         screen.blit(self.f_small.render(f"{shared} objetivos compartidos por par · fallo = {EPISODE_TIMEOUT:.0f} s",
                                         True, MUTED), (x + 12, y + h - 24))
+
+    def draw_validation(self, screen):
+        """Validación offline de los modelos del Bloque 2 (tools/train_models.py): qué tan bien imitan a A*."""
+        rep = self.ml_report
+        if not rep:
+            return
+        cols = [80, 140, 140, 70]
+        models = rep["modelos"]
+        w, h = sum(cols) + 28, 94 + 26 * len(models)
+        x, y = 18, 156
+        panel = pygame.Surface((w, h), pygame.SRCALPHA)
+        panel.fill((6, 9, 18, 200))
+        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
+        screen.blit(panel, (x, y))
+        screen.blit(self.f_med.render("Validación: imitar a A* (offline)", True, GOLD), (x + 14, y + 10))
+        heads = ["Modelo", "Exactitud CV", "F1 macro CV", "Prueba"]
+        xx = x + 14
+        for v, cw in zip(heads, cols):
+            screen.blit(self.f_small.render(v, True, MUTED), (xx, y + 38))
+            xx += cw
+        for i, (name, m) in enumerate(models.items()):
+            vals = [name, f"{m['cv_exactitud'][0]:.3f} ± {m['cv_exactitud'][1]:.3f}",
+                    f"{m['cv_f1_macro'][0]:.3f} ± {m['cv_f1_macro'][1]:.3f}", f"{m['prueba_exactitud']:.3f}"]
+            xx = x + 14
+            for v, cw in zip(vals, cols):
+                screen.blit(self.f_small.render(v, True, TEXT), (xx, y + 64 + 26 * i))
+                xx += cw
+        lv = ", ".join(str(n) for n in rep.get("niveles_entrenamiento", [1]))
+        note = f"Niveles {lv} · 5 particiones · {rep['entrenamiento']} entren. / {rep['prueba']} prueba · base {rep['clase_mayoritaria']:.2f}"
+        screen.blit(self.f_small.render(note, True, MUTED), (x + 14, y + h - 26))
 
     def _row(self, screen, values, x, y, color):
         for v, cw in zip(values, COLS):

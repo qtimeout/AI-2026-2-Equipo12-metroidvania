@@ -41,7 +41,9 @@ class Assets:
             m = json.load(f)
         self.anims = {k: Anim([self._load(n) for n in v["frames"]], v["fps"], v["loop"], v.get("faces", -1)) for k, v in m["anims"].items()}
         self.images = {k: self._load(v) for k, v in m["images"].items()}
-        self.env = {k: [self._load(n) for n in v] for k, v in m["env"].items()}
+        # env[tema][grupo] -> piezas de escenario de cada zona (kingspass, crossroads, ...)
+        self.env = {theme: {g: [self._load(n) for n in files] for g, files in groups.items()}
+                    for theme, groups in m["env"].items()}
         self._fonts = {}
 
     @staticmethod
