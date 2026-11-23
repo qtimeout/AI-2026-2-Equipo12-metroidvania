@@ -45,10 +45,15 @@ def boss(rounds, seeds, level_n):
             print(f"| {name:22s} | {fmt([v[0] for v in vals]):15s} | {fmt([v[1] for v in vals]):15s} |")
 
 
+PARAMS = {}                                     # --peso-h / --k: mismos parámetros que las teclas H y N del juego
+
+
 def run(rounds, seed, budget, level=None, graph=None, level_n=1):
     level = level or Level(level_n)
     graph = graph or NavGraph(level)
     world = World(level, graph, mode="auto", seed=seed, budget=budget)
+    for name, value in PARAMS.items():
+        world.set_param(name, value)
     total = rounds * len(world.names)
     while world.auto_episode < total:
         world.update(DT)
@@ -90,7 +95,13 @@ if __name__ == "__main__":
     ap.add_argument("--seeds", type=int, nargs="+", help="varias semillas: reporta media ± desviación")
     ap.add_argument("--budget", type=int, default=AI_BUDGET)
     ap.add_argument("--level", type=int, default=1)
+    ap.add_argument("--peso-h", type=float, help="peso de la heurística de A* (1 clásico, >1 sobreestima, 0 uniforme)")
+    ap.add_argument("--k", type=int, help="vecinos del KNN")
     args = ap.parse_args()
+    if args.peso_h is not None:
+        PARAMS["peso_h"] = args.peso_h
+    if args.k is not None:
+        PARAMS["k"] = args.k
     if Level(args.level).boss:
         boss(args.rounds, args.seeds or [args.seed], args.level)
     elif args.seeds:

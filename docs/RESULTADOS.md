@@ -94,3 +94,17 @@ Línea base: predecir siempre la clase más frecuente da 0.447 de exactitud.
 - **El Reflejo es el peor.** Sus reglas («si está lejos, lanza») ignoran que el jugador se mueve.
 - **Límite:** el modelo del salto apenas supera al azar (AUC 0.57), así que la versión aprendida casi nunca salta. Con más características, como la altura del salto del jugador, podría mejorar.
 
+
+## Parámetros en vivo (para «cambie este parámetro y prediga»)
+En la partida y en el laboratorio: `+`/`−` presupuesto de cálculo por frame, `H` peso de la heurística de A\* y `N` vecinos del KNN. Cada cambio reinicia la tabla, así que cada tabla mide **una sola** configuración. En consola se reproduce con `python app/benchmark.py --peso-h W --k K --budget B`. Nivel 1, semilla 2026, 50 objetivos:
+
+| Parámetro | Valor | Resultado | Por qué |
+|---|---|---|---|
+| Peso de la heurística de A\* | 0 (costo uniforme) | 100 %, 9.16 s, **55.4 nodos** | Sin heurística, explora en todas direcciones como Dijkstra: sigue siendo óptimo, pero expande más. |
+| | **1 (A\* clásico)** | 100 %, 9.16 s, **36.0 nodos** | Heurística admisible: óptimo y con menos nodos. |
+| | 2 | 100 %, 9.62 s, 24.5 nodos | Sobreestima: expande menos, pero elige rutas peores. |
+| | 5 | **88 %**, 11.11 s, 15.1 nodos | Casi voraz: rápido para decidir, pero falla objetivos. |
+| k del KNN | **1** | 96 % de alcance | Copia la jugada del estado más parecido. |
+| | 3 | 78 % | Votan estados con otro objetivo y diluyen la jugada correcta. |
+| | 5 | 74 % | Peor aún. |
+| Presupuesto por frame | 200 → 5 | A\* 100 % → 77 %, BFS 88 % → 74 % | El enemigo espera más frames en cada nodo mientras piensa. |

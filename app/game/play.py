@@ -18,6 +18,12 @@ from .render import WorldRenderer
 from .world import MIX, World
 
 SPEEDS = [1, 5, 20]
+# Valores que recorren las teclas de parámetros (para "cambie este parámetro y prediga qué pasa")
+BUDGETS = [1, 5, 20, 50, 200]          # + / -  presupuesto de cálculo por frame
+WEIGHTS = [1.0, 2.0, 5.0, 0.0]         # H      peso de la heurística de A* (0 = costo uniforme)
+KS = [1, 3, 5, 9]                      # N      vecinos del KNN
+PLUS_KEYS = (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS)
+MINUS_KEYS = (pygame.K_MINUS, pygame.K_KP_MINUS)
 JUMP_KEYS = (pygame.K_SPACE, pygame.K_z, pygame.K_w, pygame.K_UP)
 ATTACK_KEYS = (pygame.K_x, pygame.K_j)
 HEAL_KEYS = (pygame.K_c, pygame.K_k)
@@ -34,6 +40,9 @@ class PlayScene:
         else:
             self.world = World(self.level, self.graph, mode=mode, seed=SEED, selection=app.technique)
             self.boss_renderer = None
+            for name, value in app.params.items():       # los parámetros elegidos se conservan entre escenas
+                if self.world.params.get(name) != value:
+                    self.world.set_param(name, value)
         wpx, hpx = self.level.w * TILE, self.level.h * TILE
         if carry:                                    # vida y alma que trae el jugador del nivel anterior
             self.world.player.hp, self.world.player.soul = carry
@@ -48,8 +57,14 @@ class PlayScene:
         self.speed_i = 0
         self.jump_pressed = self.attack_pressed = self.heal_pressed = False
         self.leaving = None
+        self.toast = ("", 0.0)                       # mensaje breve al cambiar un parámetro
         self.fade = 1.0
         self.shade = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
+
+    def _set(self, w, name, value, msg):
+        w.set_param(name, value)
+        self.app.params[name] = value
+        self.toast = (msg + "  ·  métricas reiniciadas", 3.0)
 
     def _next_scene(self):
         p = self.world.player
@@ -84,6 +99,16 @@ class PlayScene:
             if w.mode == "manual":
                 w.set_selection(self.app.boss_strategy if self.boss_renderer else self.app.technique)
             self.camera.snap(*self._focus())
+        elif not self.boss_renderer and (ev.key in PLUS_KEYS or ev.key in MINUS_KEYS):
+            i = BUDGETS.index(w.params["presupuesto"]) if w.params["presupuesto"] in BUDGETS else len(BUDGETS) - 1
+            i = max(0, min(len(BUDGETS) - 1, i + (1 if ev.key in PLUS_KEYS else -1)))
+            self._set(w, "presupuesto", BUDGETS[i], f"Presupuesto: {BUDGETS[i]} unidades/frame")
+        elif ev.key == pygame.K_h and not self.boss_renderer:
+            v = WEIGHTS[(WEIGHTS.index(w.params["peso_h"]) + 1) % len(WEIGHTS)] if w.params["peso_h"] in WEIGHTS else 1.0
+            self._set(w, "peso_h", v, f"Peso de la heurística de A*: {v:g}" + ("  (costo uniforme)" if v == 0 else ""))
+        elif ev.key == pygame.K_n and not self.boss_renderer and "KNN" in w.names:
+            v = KS[(KS.index(w.params["k"]) + 1) % len(KS)] if w.params["k"] in KS else 1
+            self._set(w, "k", v, f"KNN: k = {v} vecinos")
         elif ev.key == pygame.K_m:
             self.hud.show_table = not self.hud.show_table
         elif ev.key == pygame.K_r:
@@ -110,6 +135,7 @@ class PlayScene:
         self.t += frame_dt
         self.frame_dt = frame_dt
         self.fade = max(0.0, self.fade - frame_dt / 1.0)
+        self.toast = (self.toast[0], max(0.0, self.toast[1] - frame_dt))
         if self.leaving:
             self.leaving[1] += frame_dt
             if self.leaving[1] >= 0.5:
@@ -154,6 +180,7 @@ class PlayScene:
             self.hud.draw_badge(screen, f"Enemigos: {w.selection}   (1-{len(w.names)} técnica · 0 mixto)")
             if self.hud.show_table:
                 self.hud.draw_table(screen, w)
+                self.hud.draw_params(screen, w)
             self.hud.draw_hint(screen, "Mover: flechas/A-D · Saltar: Espacio/Z · Atacar: X · Curar: C · "
                                        "M tabla · G grafo · TAB laboratorio · ESC menú")
             alpha = int(255 * max(0.0, min(1.0, (self.t - 0.6) / 0.8, (5.0 - self.t) / 1.0)))
@@ -164,6 +191,8 @@ class PlayScene:
             self.hud.draw_pairwise(screen, w)
             self.hud.draw_validation(screen)
 
+        if self.toast[1] > 0:
+            self.hud.draw_toast(screen, self.toast[0], min(1.0, self.toast[1]))
         fade = self.fade if not self.leaving else min(1.0, self.leaving[1] / 0.5)
         if fade > 0:
             self.shade.fill((0, 0, 0, int(255 * fade)))

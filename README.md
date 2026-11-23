@@ -35,7 +35,7 @@ Laboratorio dentro del juego (`TAB`) y en consola (`python app/benchmark.py`): m
 ## Cómo ejecutarlo
 - **En línea:** https://qtimeout.itch.io/metroidvania-equipo-12 · **Código:** https://github.com/qtimeout/AI-2026-2-Equipo12-metroidvania
 - **Local:** `pip install -r requirements.txt` y luego `python app/main.py`. En navegador: `python -m pygbag app`.
-- **Controles:** flechas para moverse, Espacio para saltar, X para atacar y C para curarse. `1..7` asigna la técnica de los enemigos, `0` activa el modo mixto, `G` muestra el grafo, `M` la tabla y `TAB` el laboratorio (`F` cambia la velocidad).
+- **Controles:** flechas para moverse, Espacio para saltar, X para atacar y C para curarse. `1..7` asigna la técnica de los enemigos, `0` activa el modo mixto, `G` muestra el grafo, `M` la tabla y `TAB` el laboratorio (`F` cambia la velocidad). **Parámetros en vivo:** `+`/`−` presupuesto por frame, `H` peso de la heurística de A\* y `N` vecinos del KNN (efectos medidos en [docs/RESULTADOS.md](docs/RESULTADOS.md)).
 - **Reproducir:** `python app/benchmark.py --level N --seeds 2026 2027 2028`. Reentrenar: `tools/make_dataset.py`, `tools/train_models.py 1 2 3` y `tools/train_boss.py`.
 
 ## Uso de IA generativa

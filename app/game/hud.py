@@ -76,7 +76,9 @@ class Hud:
                 screen.blit(hl, (x + 8, yy - 4))
             self._row(screen, row, x + 14, yy, TEXT)
         if big:
-            info = f"Técnica en curso: {world.technique}   ·   t = {world.t:4.1f}/{EPISODE_TIMEOUT:.0f} s   ·   F: velocidad   R: reiniciar   G: grafo"
+            p = world.params
+            info = (f"En curso: {world.technique} · t {world.t:4.1f} s   |   +/- presupuesto {p['presupuesto']}   "
+                    f"H peso A* {p['peso_h']:g}   N k={p['k']}   |   F vel.  R reinicia  G grafo")
             screen.blit(self.f_small.render(info, True, MUTED), (x + 14, y + h - 28))
 
     def draw_pairwise(self, screen, world):
@@ -139,6 +141,31 @@ class Hud:
         lv = ", ".join(str(n) for n in rep.get("niveles_entrenamiento", [1]))
         note = f"Niveles {lv} · 5 particiones · {rep['entrenamiento']} entren. / {rep['prueba']} prueba · base {rep['clase_mayoritaria']:.2f}"
         screen.blit(self.f_small.render(note, True, MUTED), (x + 14, y + h - 26))
+
+    def draw_params(self, screen, world):
+        """Parámetros en vivo: valor actual y tecla para cambiarlo."""
+        p = world.params
+        lines = [("Parámetros en vivo", GOLD),
+                 (f"+/-  presupuesto: {p['presupuesto']} por frame", TEXT),
+                 (f"H    peso heurística A*: {p['peso_h']:g}" + ("  (costo uniforme)" if p['peso_h'] == 0 else ""), TEXT),
+                 (f"N    vecinos KNN: k = {p['k']}", TEXT)]
+        w, h = 330, 22 + 24 * len(lines)
+        x, y = 18, SCREEN_H - h - 48
+        panel = pygame.Surface((w, h), pygame.SRCALPHA)
+        panel.fill((6, 9, 18, 190))
+        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
+        screen.blit(panel, (x, y))
+        for i, (txt, col) in enumerate(lines):
+            screen.blit(self.f_small.render(txt, True, col), (x + 12, y + 10 + 24 * i))
+
+    def draw_toast(self, screen, text, alpha):
+        img = self.f_med.render(text, True, (245, 240, 225))
+        bg = pygame.Surface((img.get_width() + 30, img.get_height() + 16), pygame.SRCALPHA)
+        bg.fill((40, 30, 10, int(210 * alpha)))
+        img.set_alpha(int(255 * alpha))
+        x = SCREEN_W / 2 - bg.get_width() / 2
+        screen.blit(bg, (x, SCREEN_H * 0.42))
+        screen.blit(img, (x + 15, SCREEN_H * 0.42 + 8))
 
     def _row(self, screen, values, x, y, color):
         for v, cw in zip(values, COLS):

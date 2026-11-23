@@ -23,6 +23,7 @@ class App:
         self.technique = MIX
         self.level = 1                      # nivel inicial de la partida y nivel del laboratorio
         self.boss_strategy = "Utilidad (aprendida)"
+        self.params = {}                    # parámetros en vivo cambiados con +/-, H y N (ver play.py)
         self.running = True
 
     def cycle_level(self, step):

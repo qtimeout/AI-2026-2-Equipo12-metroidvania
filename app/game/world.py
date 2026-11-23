@@ -44,6 +44,8 @@ class World:
         self.seed, self.budget = seed, budget
         self.lab_agents = build_agents(seed)          # laboratorio: una instancia por técnica, persistente
         self.names = list(self.lab_agents)
+        # Parámetros que se pueden cambiar EN VIVO desde el juego (teclas en play.py) y desde benchmark.py
+        self.params = {"presupuesto": budget, "peso_h": 1.0, "k": self._knn_model().k if self._knn_model() else 1}
         self.selection = selection or self.names[0]    # técnica elegida en el menú, o MIX
         self.metrics = {"manual": Metrics(self.names), "auto": Metrics(self.names)}
         self.mode = mode
@@ -65,7 +67,28 @@ class World:
 
     def _make_agent(self, name, i):
         """Instancia propia por enemigo (los agentes guardan estado: ruta, generador aleatorio)."""
-        return build_agents(self.seed + i)[name]
+        agent = build_agents(self.seed + i)[name]
+        if hasattr(agent, "w"):
+            agent.w = self.params["peso_h"]
+        return agent
+
+    def _knn_model(self):
+        agent = self.lab_agents.get("KNN")
+        return agent.model if agent else None
+
+    def set_param(self, name, value):
+        """Cambia un parámetro y reinicia las métricas del modo actual: cada tabla mide UNA configuración.
+        presupuesto -> nodos (o unidades de cálculo) por frame de cada enemigo
+        peso_h      -> peso de la heurística de A* (1 = A* clásico; >1 sobreestima; 0 = costo uniforme)
+        k           -> vecinos del KNN (el modelo es el mismo; cambia cuántos votan)"""
+        self.params[name] = value
+        self.budget = self.params["presupuesto"]
+        for agent in [self.lab_agents.get("A*")] + [s.agent for s in self.slots if s.technique == "A*"]:
+            if agent is not None:
+                agent.w = self.params["peso_h"]
+        if self._knn_model():
+            self._knn_model().k = self.params["k"]
+        self.reset_metrics()
 
     def set_mode(self, mode):
         self.mode = mode
