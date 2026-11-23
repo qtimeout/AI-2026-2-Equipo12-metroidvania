@@ -19,11 +19,11 @@ Laboratorio dentro del juego (`TAB`) y en consola (`python app/benchmark.py`): m
 | Reflejo | 37–79 % | 10.4–14.9 s | 0.003 | 900 |
 | BFS | 86–100 % | 7.0–11.9 s | 0.08 | 900 |
 | **A\*** | **100 %** | **5.4–9.8 s** | 0.16 | 900 |
-| KNN | 0–7 % | 19.5–20.0 s | 144 | 900 |
+| KNN (índice por cubetas) | 97–98 % | 6.0–10.5 s | 1.7 | 900 |
 | **Árbol** | **98–99 %** | **5.6–9.8 s** | **0.02** | 900 |
 | MLP | 67–84 % | 7.7–13.0 s | 0.5 | 900 |
 
-*Rangos de los niveles 1 a 3; 3 semillas × 100 objetivos por nivel.* El árbol **iguala a A\* y decide 8 veces más rápido**. El MLP acierta el 97 % de las jugadas sueltas, pero en el juego encadena errores. El KNN escala peor: compara cada estado contra las 62 657 demostraciones guardadas. En un mapa que no vieron, los modelos caen de 0.99 a 0.70–0.81 de exactitud, mientras que la búsqueda funciona en cualquier mapa.
+*Rangos de los niveles 1 a 3; 3 semillas × 100 objetivos por nivel.* El árbol **iguala a A\* y decide 8 veces más rápido**. El MLP acierta el 97 % de las jugadas sueltas, pero en el juego encadena errores. El KNN compara contra sus 62 657 demostraciones: por fuerza bruta tardaba 116 ms por decisión y casi nunca llegaba (0–7 %); con un **índice por cubetas con poda** da el mismo resultado exacto 73 veces más rápido. En un mapa que no vieron, los modelos caen de 0.99 a 0.70–0.81 de exactitud, mientras que la búsqueda funciona en cualquier mapa.
 
 | Estrategia del jefe | Acierto % | Aciertos/min | Corridas |
 |---------------------|-----------|--------------|----------|

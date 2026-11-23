@@ -51,14 +51,14 @@ Línea base: predecir siempre la clase más frecuente da 0.447 de exactitud.
 | Reflejo | 37 % / 14.87 | 52 % / 13.05 | 79 % / 10.40 |
 | BFS | 86 % / 11.91 | 100 % / 6.99 | 100 % / 7.76 |
 | **A\*** | **100 % / 9.80** | **100 % / 5.42** | **100 % / 6.07** |
-| KNN | 0 % / 20.00 | 7 % / 19.53 | 1 % / 19.99 |
+| KNN (índice) | 97 % / 10.46 | 98 % / 6.00 | 98 % / 6.80 |
 | **Árbol** | 99 % / 9.83 | 99 % / 5.57 | 98 % / 6.32 |
 | MLP | 67 % / 13.01 | 84 % / 7.74 | 76 % / 9.29 |
 
 **Análisis.**
 - **El árbol es el mejor imitador:** prácticamente iguala a A\* en los tres niveles (a menos de 0.3 s) y decide unas 8 veces más rápido (≈0.02 contra ≈0.16 ms), porque no busca en el grafo.
 - **Exactitud alta no basta.** El MLP acierta el 97 % de las jugadas sueltas, pero en el juego los errores se encadenan: una jugada mala lo lleva a un estado que el experto nunca visitó y empieza a oscilar.
-- **El KNN es el que peor escala.** Con 62 657 demostraciones, cada decisión compara contra todas en Python puro (144 ms medidos), y con el presupuesto calibrado (1 unidad ≈ 1 nodo de A\* ≈ 2 comparaciones) el enemigo se queda decenas de frames pensando en cada nodo: casi nunca llega. Entrenado solo con el nivel 1 (15 500 puntos) alcanzaba el 46 %. Cada nivel nuevo lo empeora: es el costo de un modelo que *guarda* los datos en vez de resumirlos.
+- **El KNN por fuerza bruta no escala; el indexado sí.** Con 62 657 demostraciones, compararlas todas en Python puro cuesta 116 ms por decisión: con el presupuesto calibrado (1 unidad ≈ 1 nodo de A\* ≈ 2 comparaciones), el enemigo se quedaba decenas de frames pensando en cada nodo y alcanzaba solo el 0–7 %. Lo resolvimos con un **índice por cubetas con poda**, sin cambiar el modelo: las demostraciones se agrupan por posición del enemigo y movimientos disponibles (475 cubetas). Se recorren de menor a mayor cota inferior de distancia y se descartan las que no pueden contener un vecino más cercano. En 300 estados de prueba **predice exactamente lo mismo que la búsqueda completa**, comparando 157 puntos en promedio en vez de 62 657 (1.6 ms contra 116 ms; 73 veces más rápido). Cobramos también el cálculo de las cotas contra el presupuesto, para no darle ventaja sobre A\*. Ahora alcanza el 97–98 %.
 - **Información:** los modelos solo perciben información local; A\* conoce el grafo completo.
 
 ## Resultados — Jefe final (Hornet)
