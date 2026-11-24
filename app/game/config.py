@@ -47,6 +47,7 @@ SPAWN_CHARS = {"E": "saltador", "S": "saltador", "W": "errante", "H": "cornudo",
 BOSS_HP = 24
 BOSS_W, BOSS_H = 50, 104
 BOSS_COOLDOWN = 0.55      # s de pausa entre ataques
+BOSS_INTRO = 2.5          # s antes del primer ataque en la partida (deja ver el título y ubicarse)
 BOSS_LAB_ROUND = 60.0     # s simulados por corrida en el laboratorio del jefe
 
 # IA

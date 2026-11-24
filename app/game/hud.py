@@ -12,7 +12,13 @@ from .ml.models import MODEL_DIR
 TEXT = (232, 236, 245)
 MUTED = (150, 158, 182)
 GOLD = (240, 214, 150)
-COLS = [190, 82, 92, 122, 112, 62, 90, 72]
+# columnas (ancho en px) de la tabla completa y de la compacta; la compacta muestra lo esencial
+COLS = [118, 58, 60, 74, 74, 46, 64, 54]
+COMPACT = [(0, 118), (2, 64), (4, 74), (7, 58)]          # Técnica, Alcanza %, T. penal., ms/dec
+HEAD_SHORT = ["Técnica", "Corr.", "Alcanza", "T. alc.", "T. penal.", "Pasos", "Nodos", "ms/dec"]
+ROW_H = 20
+# Paneles que se muestran u ocultan (tecla o clic en la barra de botones de arriba a la derecha)
+PANELS = [("tabla", "M", "Tabla"), ("pares", "P", "Pares"), ("valid", "V", "Validación"), ("params", "O", "Parámetros")]
 SHORT = {"Aleatorio (base)": "Aleatorio"}
 
 
@@ -23,7 +29,10 @@ class Hud:
         self.mask_full = scale(assets.anims["mask_full"].frames[0], 0.8)
         self.mask_empty = scale(assets.anims["mask_empty"].frames[0], 0.8)
         self.f_small, self.f_med, self.f_big, self.f_title = (assets.font(s) for s in (22, 26, 34, 74))
-        self.show_table = True
+        self.f_tiny, self.f_head = assets.font(18), assets.font(20)
+        # tabla: "compacta" -> "completa" -> "oculta"; los demás paneles: visible o no
+        self.panels = {"tabla": "compacta", "pares": False, "valid": False, "params": False}
+        self.buttons = []                                   # (rect, panel) de la barra, para detectar clics
         self._shown_hp = PLAYER_MAX_HP
         self.hit_flash = 0.0
         path = os.path.join(MODEL_DIR, "metrics.json")
@@ -52,54 +61,103 @@ class Hud:
             glow.fill((255, 255, 255, int(70 * player.heal_flash)))
             screen.blit(glow, (0, 0))
 
-    # ---------- tabla comparativa ----------
-    def draw_table(self, screen, world, big=False):
-        rows = world.metrics[world.mode].rows()
-        w = sum(COLS) + 28
-        h = 66 + 26 * len(rows) + (30 if big else 0)
-        x = (SCREEN_W - w) // 2 if big else SCREEN_W - w - 18
-        y = SCREEN_H - h - 18 if big else 18
+    # ---------- paneles plegables ----------
+    def toggle(self, name):
+        if name == "tabla":
+            order = ["compacta", "completa", "oculta"]
+            self.panels["tabla"] = order[(order.index(self.panels["tabla"]) + 1) % 3]
+        else:
+            self.panels[name] = not self.panels[name]
+
+    def click(self, pos):
+        for rect, name in self.buttons:
+            if rect.collidepoint(pos):
+                self.toggle(name)
+                return True
+        return False
+
+    def draw_toolbar(self, screen, available):
+        """Botones pequeños arriba a la derecha: muestran el estado de cada panel y se pueden pulsar."""
+        self.buttons = []
+        x = SCREEN_W - 14
+        for name, key, label in reversed([p for p in PANELS if p[0] in available]):
+            state = self.panels[name]
+            on = state not in (False, "oculta")
+            text = f"{label} [{key}]" + (" +" if state == "completa" else "")
+            img = self.f_tiny.render(text, True, TEXT if on else MUTED)
+            r = pygame.Rect(0, 10, img.get_width() + 16, 24)
+            r.right = x
+            bg = pygame.Surface(r.size, pygame.SRCALPHA)
+            bg.fill((70, 90, 150, 170) if on else (6, 9, 18, 150))
+            pygame.draw.rect(bg, (120, 135, 170, 140), bg.get_rect(), 1, border_radius=6)
+            screen.blit(bg, r.topleft)
+            screen.blit(img, (r.x + 8, r.y + 4))
+            self.buttons.append((r, name))
+            x = r.x - 6
+
+    @staticmethod
+    def _panel(screen, x, y, w, h):
         panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        panel.fill((6, 9, 18, 200))
-        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
+        panel.fill((6, 9, 18, 185))
+        pygame.draw.rect(panel, (120, 135, 170, 110), panel.get_rect(), 1, border_radius=8)
         screen.blit(panel, (x, y))
-        title = "Comparación de técnicas — " + ("partida con humano" if world.mode == "manual"
-                                                else "laboratorio (objetivos sembrados)")
-        screen.blit(self.f_med.render(title, True, GOLD), (x + 14, y + 10))
-        self._row(screen, HEADERS, x + 14, y + 38, MUTED)
-        for i, row in enumerate(rows):
-            yy = y + 64 + 26 * i
+
+    def draw_table(self, screen, world, big=False, y=44):
+        """Tabla comparativa arriba a la derecha. Compacta: técnica, alcance, tiempo penalizado y ms/dec."""
+        mode = self.panels["tabla"]
+        if mode == "oculta":
+            return y
+        rows = world.metrics[world.mode].rows()
+        if mode == "compacta":
+            cols = COMPACT
+        else:
+            cols = list(enumerate(COLS))
+        w = sum(cw for _, cw in cols) + 20
+        h = 50 + ROW_H * len(rows) + (22 if big else 0)
+        x = SCREEN_W - w - 14
+        self._panel(screen, x, y, w, h)
+        title = "Partida con humano" if world.mode == "manual" else "Laboratorio · objetivos sembrados"
+        screen.blit(self.f_head.render(title, True, GOLD), (x + 10, y + 7))
+        xx = x + 10
+        for i, cw in cols:
+            screen.blit(self.f_tiny.render(HEAD_SHORT[i], True, MUTED), (xx, y + 29))
+            xx += cw
+        for r, row in enumerate(rows):
+            yy = y + 48 + ROW_H * r
             active = row[0] in world.active_techniques if world.mode == "manual" else row[0] == world.technique
             if active:
-                hl = pygame.Surface((w - 16, 24), pygame.SRCALPHA)
+                hl = pygame.Surface((w - 10, ROW_H - 2), pygame.SRCALPHA)
                 hl.fill((110, 130, 190, 60))
-                screen.blit(hl, (x + 8, yy - 4))
-            self._row(screen, row, x + 14, yy, TEXT)
+                screen.blit(hl, (x + 5, yy - 2))
+            xx = x + 10
+            for i, cw in cols:
+                v = SHORT.get(row[i], row[i]) if i == 0 else row[i]
+                screen.blit(self.f_tiny.render(v, True, TEXT), (xx, yy))
+                xx += cw
         if big:
-            p = world.params
-            info = (f"En curso: {world.technique} · t {world.t:4.1f} s   |   +/- presupuesto {p['presupuesto']}   "
-                    f"H peso A* {p['peso_h']:g}   N k={p['k']}   |   F vel.  R reinicia  G grafo")
-            screen.blit(self.f_small.render(info, True, MUTED), (x + 14, y + h - 28))
+            info = f"En curso: {SHORT.get(world.technique, world.technique)} · t {world.t:4.1f} s · F vel. · R reinicia"
+            screen.blit(self.f_tiny.render(info, True, MUTED), (x + 10, y + h - 20))
+        return y + h + 8
 
-    def draw_pairwise(self, screen, world):
+    def draw_pairwise(self, screen, world, y=44):
         """Matriz por pares del laboratorio: % de objetivos compartidos en que la fila llega antes que la columna."""
+        if not self.panels["pares"]:
+            return y
         m = world.metrics["auto"]
         win, n = m.pairwise()
         names = m.names
-        cw, lw = 86, 112
-        w, h = lw + cw * len(names) + 24, 96 + 26 * len(names)
-        x, y = SCREEN_W - w - 18, 18
-        panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        panel.fill((6, 9, 18, 200))
-        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
-        screen.blit(panel, (x, y))
+        cw, lw = 54, 82
+        w, h = lw + cw * len(names) + 18, 72 + ROW_H * len(names)
+        x = SCREEN_W - w - 14
+        self._panel(screen, x, y, w, h)
         shared = min((n[a][b] for a in names for b in names if a != b), default=0)
-        screen.blit(self.f_med.render("Por pares: fila llega antes que columna", True, GOLD), (x + 12, y + 10))
+        screen.blit(self.f_head.render("Por pares: fila llega antes", True, GOLD), (x + 10, y + 7))
+        abbrev = lambda t: SHORT.get(t, t)[:6]
         for j, b in enumerate(names):
-            screen.blit(self.f_small.render(SHORT.get(b, b), True, MUTED), (x + 12 + lw + j * cw, y + 38))
+            screen.blit(self.f_tiny.render(abbrev(b), True, MUTED), (x + 10 + lw + j * cw, y + 29))
         for i, a in enumerate(names):
-            yy = y + 62 + 26 * i
-            screen.blit(self.f_small.render(SHORT.get(a, a), True, MUTED), (x + 12, yy))
+            yy = y + 48 + ROW_H * i
+            screen.blit(self.f_tiny.render(SHORT.get(a, a), True, MUTED), (x + 10, yy))
             for j, b in enumerate(names):
                 if a == b:
                     txt, col = "—", MUTED
@@ -108,55 +166,51 @@ class Hud:
                     txt, col = f"{v:.0f}%", (140, 225, 150) if v > 50 else (TEXT if v > 0 else MUTED)
                 else:
                     txt, col = "-", MUTED
-                screen.blit(self.f_small.render(txt, True, col), (x + 12 + lw + j * cw, yy))
-        screen.blit(self.f_small.render(f"{shared} objetivos compartidos por par · fallo = {EPISODE_TIMEOUT:.0f} s",
-                                        True, MUTED), (x + 12, y + h - 24))
+                screen.blit(self.f_tiny.render(txt, True, col), (x + 10 + lw + j * cw, yy))
+        screen.blit(self.f_tiny.render(f"{shared} objetivos por par · fallo = {EPISODE_TIMEOUT:.0f} s", True, MUTED),
+                    (x + 10, y + h - 20))
+        return y + h + 8
 
-    def draw_validation(self, screen):
+    def draw_validation(self, screen, y=150):
         """Validación offline de los modelos del Bloque 2 (tools/train_models.py): qué tan bien imitan a A*."""
         rep = self.ml_report
-        if not rep:
+        if not rep or not self.panels["valid"]:
             return
-        cols = [80, 140, 140, 70]
+        cols = [64, 118, 118, 56]
         models = rep["modelos"]
-        w, h = sum(cols) + 28, 94 + 26 * len(models)
-        x, y = 18, 156
-        panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        panel.fill((6, 9, 18, 200))
-        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
-        screen.blit(panel, (x, y))
-        screen.blit(self.f_med.render("Validación: imitar a A* (offline)", True, GOLD), (x + 14, y + 10))
-        heads = ["Modelo", "Exactitud CV", "F1 macro CV", "Prueba"]
-        xx = x + 14
-        for v, cw in zip(heads, cols):
-            screen.blit(self.f_small.render(v, True, MUTED), (xx, y + 38))
+        w, h = sum(cols) + 20, 72 + ROW_H * len(models)
+        x = 14
+        self._panel(screen, x, y, w, h)
+        screen.blit(self.f_head.render("Validación: imitar a A*", True, GOLD), (x + 10, y + 7))
+        xx = x + 10
+        for v, cw in zip(["Modelo", "Exactitud CV", "F1 macro CV", "Prueba"], cols):
+            screen.blit(self.f_tiny.render(v, True, MUTED), (xx, y + 29))
             xx += cw
         for i, (name, m) in enumerate(models.items()):
-            vals = [name, f"{m['cv_exactitud'][0]:.3f} ± {m['cv_exactitud'][1]:.3f}",
-                    f"{m['cv_f1_macro'][0]:.3f} ± {m['cv_f1_macro'][1]:.3f}", f"{m['prueba_exactitud']:.3f}"]
-            xx = x + 14
+            vals = [name, f"{m['cv_exactitud'][0]:.3f}±{m['cv_exactitud'][1]:.3f}",
+                    f"{m['cv_f1_macro'][0]:.3f}±{m['cv_f1_macro'][1]:.3f}", f"{m['prueba_exactitud']:.3f}"]
+            xx = x + 10
             for v, cw in zip(vals, cols):
-                screen.blit(self.f_small.render(v, True, TEXT), (xx, y + 64 + 26 * i))
+                screen.blit(self.f_tiny.render(v, True, TEXT), (xx, y + 48 + ROW_H * i))
                 xx += cw
-        lv = ", ".join(str(n) for n in rep.get("niveles_entrenamiento", [1]))
-        note = f"Niveles {lv} · 5 particiones · {rep['entrenamiento']} entren. / {rep['prueba']} prueba · base {rep['clase_mayoritaria']:.2f}"
-        screen.blit(self.f_small.render(note, True, MUTED), (x + 14, y + h - 26))
+        lv = ",".join(str(n) for n in rep.get("niveles_entrenamiento", [1]))
+        note = f"Niveles {lv} · 5 part. · {rep['entrenamiento']}/{rep['prueba']} · base {rep['clase_mayoritaria']:.2f}"
+        screen.blit(self.f_tiny.render(note, True, MUTED), (x + 10, y + h - 20))
 
     def draw_params(self, screen, world):
         """Parámetros en vivo: valor actual y tecla para cambiarlo."""
+        if not self.panels["params"]:
+            return
         p = world.params
         lines = [("Parámetros en vivo", GOLD),
                  (f"+/-  presupuesto: {p['presupuesto']} por frame", TEXT),
-                 (f"H    peso heurística A*: {p['peso_h']:g}" + ("  (costo uniforme)" if p['peso_h'] == 0 else ""), TEXT),
+                 (f"H    peso heurística A*: {p['peso_h']:g}" + ("  (uniforme)" if p['peso_h'] == 0 else ""), TEXT),
                  (f"N    vecinos KNN: k = {p['k']}", TEXT)]
-        w, h = 330, 22 + 24 * len(lines)
-        x, y = 18, SCREEN_H - h - 48
-        panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        panel.fill((6, 9, 18, 190))
-        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
-        screen.blit(panel, (x, y))
+        w, h = 270, 16 + ROW_H * len(lines)
+        x, y = 14, SCREEN_H - h - 42
+        self._panel(screen, x, y, w, h)
         for i, (txt, col) in enumerate(lines):
-            screen.blit(self.f_small.render(txt, True, col), (x + 12, y + 10 + 24 * i))
+            screen.blit((self.f_head if i == 0 else self.f_tiny).render(txt, True, col), (x + 10, y + 8 + ROW_H * i))
 
     def draw_toast(self, screen, text, alpha):
         img = self.f_med.render(text, True, (245, 240, 225))
@@ -166,11 +220,6 @@ class Hud:
         x = SCREEN_W / 2 - bg.get_width() / 2
         screen.blit(bg, (x, SCREEN_H * 0.42))
         screen.blit(img, (x + 15, SCREEN_H * 0.42 + 8))
-
-    def _row(self, screen, values, x, y, color):
-        for v, cw in zip(values, COLS):
-            screen.blit(self.f_small.render(v, True, color), (x, y))
-            x += cw
 
     # ---------- textos ----------
     def draw_area_title(self, screen, name, sub, alpha):

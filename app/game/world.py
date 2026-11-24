@@ -12,7 +12,7 @@ import random
 
 from .agents import build_agents
 from .config import (AI_BUDGET, ENEMY_RECOVER, ENEMY_RESPAWN, ENEMY_STUN, EPISODE_TIMEOUT,
-                     MIN_TARGET_DIST, SEED, SOUL_PER_HIT, TILE)
+                     ENEMY_TYPES, MIN_TARGET_DIST, SEED, SOUL_PER_HIT, TILE)
 from .enemy import Enemy
 from .metrics import Metrics
 from .player import Player
@@ -49,7 +49,7 @@ class World:
         self.selection = selection or self.names[0]    # técnica elegida en el menú, o MIX
         self.metrics = {"manual": Metrics(self.names), "auto": Metrics(self.names)}
         self.mode = mode
-        self.rng = random.Random(seed)
+        self.rng = random.Random(seed * 10 + getattr(level, "n", 1))   # sorteo del modo mixto, distinto por nivel
         self.events = []          # eventos visuales para el render (golpes, muertes); no afectan la lógica
         self.finished = False     # el jugador llegó a la salida del nivel (solo en partida)
         self._build_targets()
@@ -139,18 +139,22 @@ class World:
             self.slots = []
             spawns = self.level.enemy_spawns
             mix = self._mix_assignment(len(spawns)) if self.selection == MIX else None
+            # en el modo mixto también se mezclan los TIPOS de enemigo: cada posición recibe uno sorteado
+            kinds = self._mix_assignment(len(spawns), list(ENEMY_TYPES)) if mix else None
             for i, (spawn, kind) in enumerate(spawns):
                 name = mix[i] if mix else self.selection
+                kind = kinds[i] if kinds else kind
                 self.slots.append(Slot(spawn, kind, name, self._make_agent(name, i), self.budget))
         for s in self.slots:
             s.new_episode()
 
-    def _mix_assignment(self, k):
-        """Reparte las técnicas como una baraja: todas aparecen al menos una vez (si k >= nº de técnicas)
-        y solo cambia, al azar, qué enemigo recibe cuál."""
+    def _mix_assignment(self, k, items=None):
+        """Reparte como una baraja (técnicas, o tipos de enemigo si se pasan en items): cada elemento aparece al
+        menos una vez si k >= cantidad, y solo cambia al azar a qué enemigo le toca cuál."""
+        items = items or self.names
         out = []
         while len(out) < k:
-            bag = list(self.names)
+            bag = list(items)
             self.rng.shuffle(bag)
             out += bag
         return out[:k]

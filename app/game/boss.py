@@ -19,7 +19,7 @@ import os
 import random
 import time
 
-from .config import (BOSS_COOLDOWN, BOSS_H, BOSS_HP, BOSS_LAB_ROUND, BOSS_W, GRAVITY, PLAYER_H, PLAYER_W,
+from .config import (BOSS_COOLDOWN, BOSS_INTRO, BOSS_H, BOSS_HP, BOSS_LAB_ROUND, BOSS_W, GRAVITY, PLAYER_H, PLAYER_W,
                      SEED, SOUL_PER_HIT, TILE)
 from .player import Player
 
@@ -27,7 +27,7 @@ ATTACKS = ["lanza", "embestida", "salto"]
 THREAD_SPEED, THREAD_REACH = 950.0, 520.0
 DASH_SPEED, DASH_TIME = 1150.0, 0.45
 JUMP_TIME = 0.8
-WINDUP = {"lanza": 0.35, "embestida": 0.30, "salto": 0.15}
+WINDUP = {"lanza": 0.35, "embestida": 0.30, "salto": 0.45}   # preparación visible: el jugador puede reaccionar
 RECOVER = {"lanza": 0.25, "embestida": 0.30, "salto": 0.35}
 DURATION = {"lanza": WINDUP["lanza"] + 2 * THREAD_REACH / THREAD_SPEED + RECOVER["lanza"],
             "embestida": WINDUP["embestida"] + DASH_TIME + RECOVER["embestida"],
@@ -357,7 +357,7 @@ class BossWorld:
         self.player = Player(self.level.player_spawn)
         self.boss = Boss(self.level.boss_spawn)
         self.t = 0.0
-        self.cooldown = BOSS_COOLDOWN
+        self.cooldown = BOSS_INTRO if self.mode == "manual" else BOSS_COOLDOWN
         self.history = []                     # (t, x) del jugador para estimar su velocidad
         n = len(self.names)
         self.bot = PlayerBot(self.seed * 1000 + self.round // n) if self.mode == "auto" else None

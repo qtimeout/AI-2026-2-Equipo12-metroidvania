@@ -8,7 +8,7 @@ from .config import BOSS_HP, EPISODE_TIMEOUT, SCREEN_H, SCREEN_W
 TEXT = (232, 236, 245)
 MUTED = (150, 158, 182)
 GOLD = (240, 214, 150)
-COLS = [210, 82, 78, 92, 116, 120, 70]
+COLS = [150, 64, 64, 70, 92, 96, 56]
 
 
 class BossRenderer:
@@ -16,6 +16,7 @@ class BossRenderer:
         self.A = assets.anims
         self.white = {}
         self.f_small, self.f_med, self.f_name = assets.font(22), assets.font(26), assets.font(30)
+        self.f_tiny, self.f_head = assets.font(18), assets.font(20)
 
     def _anim_frame(self, b, t):
         A = self.A
@@ -81,33 +82,35 @@ class BossRenderer:
         pygame.draw.rect(screen, (160, 40, 60), (x, y, int(w * frac), h), border_radius=3)
         pygame.draw.rect(screen, (230, 220, 235), (x - 3, y - 3, w + 6, h + 6), 1, border_radius=4)
 
-    def draw_table(self, screen, world, big=False):
+    def draw_table(self, screen, world, big=False, mode="compacta"):
+        """Tabla del jefe arriba a la derecha. Compacta: estrategia, acierto % y aciertos/min."""
+        if mode == "oculta":
+            return
         rows = world.metrics[world.mode].rows()
-        w = sum(COLS) + 28
-        h = 66 + 26 * len(rows) + (30 if big else 0)
-        x = (SCREEN_W - w) // 2 if big else SCREEN_W - w - 18
-        y = 150 if big else 18                    # arriba: el suelo de la arena queda abajo y no se tapa
+        cols = [(0, 150), (3, 70), (4, 92)] if mode == "compacta" else [(i, cw) for i, cw in enumerate(COLS)]
+        w = sum(cw for _, cw in cols) + 20
+        h = 50 + 20 * len(rows) + (22 if big else 0)
+        x, y = SCREEN_W - w - 14, 44
         panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        panel.fill((6, 9, 18, 200))
-        pygame.draw.rect(panel, (120, 135, 170, 120), panel.get_rect(), 1, border_radius=8)
+        panel.fill((6, 9, 18, 185))
+        pygame.draw.rect(panel, (120, 135, 170, 110), panel.get_rect(), 1, border_radius=8)
         screen.blit(panel, (x, y))
-        title = "Jefe: ¿qué ataque elegir? — " + ("partida con humano" if world.mode == "manual"
-                                                  else "laboratorio (jugador robot sembrado)")
-        screen.blit(self.f_med.render(title, True, GOLD), (x + 14, y + 10))
-        self._row(screen, BOSS_HEADERS, x + 14, y + 38, MUTED)
-        for i, row in enumerate(rows):
-            yy = y + 64 + 26 * i
+        title = "Jefe · partida con humano" if world.mode == "manual" else "Jefe · laboratorio (robot sembrado)"
+        screen.blit(self.f_head.render(title, True, GOLD), (x + 10, y + 7))
+        xx = x + 10
+        for i, cw in cols:
+            screen.blit(self.f_tiny.render(BOSS_HEADERS[i], True, MUTED), (xx, y + 29))
+            xx += cw
+        for r, row in enumerate(rows):
+            yy = y + 48 + 20 * r
             if row[0] == world.technique:
-                hl = pygame.Surface((w - 16, 24), pygame.SRCALPHA)
+                hl = pygame.Surface((w - 10, 18), pygame.SRCALPHA)
                 hl.fill((110, 130, 190, 60))
-                screen.blit(hl, (x + 8, yy - 4))
-            self._row(screen, row, x + 14, yy, TEXT)
+                screen.blit(hl, (x + 5, yy - 2))
+            xx = x + 10
+            for i, cw in cols:
+                screen.blit(self.f_tiny.render(row[i], True, TEXT), (xx, yy))
+                xx += cw
         if big:
-            info = (f"Estrategia en curso: {world.technique}   ·   t = {world.t:4.1f} s   ·   "
-                    f"L/E/S = lanza / embestida / salto   ·   F velocidad   R reiniciar")
-            screen.blit(self.f_small.render(info, True, MUTED), (x + 14, y + h - 28))
-
-    def _row(self, screen, values, x, y, color):
-        for v, cw in zip(values, COLS):
-            screen.blit(self.f_small.render(v, True, color), (x, y))
-            x += cw
+            info = f"En curso: {world.technique} · t {world.t:4.1f} s"
+            screen.blit(self.f_tiny.render(info, True, MUTED), (x + 10, y + h - 20))

@@ -82,6 +82,9 @@ class PlayScene:
         return x + w / 2, y + h / 2
 
     def handle(self, ev):
+        if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+            self.hud.click(ev.pos)                   # botones de la barra: mostrar u ocultar paneles
+            return
         if ev.type != pygame.KEYDOWN:
             return
         w = self.world
@@ -110,7 +113,13 @@ class PlayScene:
             v = KS[(KS.index(w.params["k"]) + 1) % len(KS)] if w.params["k"] in KS else 1
             self._set(w, "k", v, f"KNN: k = {v} vecinos")
         elif ev.key == pygame.K_m:
-            self.hud.show_table = not self.hud.show_table
+            self.hud.toggle("tabla")                 # compacta -> completa -> oculta
+        elif ev.key == pygame.K_p:
+            self.hud.toggle("pares")
+        elif ev.key == pygame.K_v:
+            self.hud.toggle("valid")
+        elif ev.key == pygame.K_o:
+            self.hud.toggle("params")
         elif ev.key == pygame.K_r:
             w.reset_metrics()
         elif ev.key == pygame.K_g:
@@ -178,18 +187,20 @@ class PlayScene:
         elif w.mode == "manual":
             self.hud.draw_vitals(screen, w.player, self.t)
             self.hud.draw_badge(screen, f"Enemigos: {w.selection}   (1-{len(w.names)} técnica · 0 mixto)")
-            if self.hud.show_table:
-                self.hud.draw_table(screen, w)
-                self.hud.draw_params(screen, w)
+            self.hud.draw_toolbar(screen, ("tabla", "params"))
+            self.hud.draw_table(screen, w)
+            self.hud.draw_params(screen, w)
             self.hud.draw_hint(screen, "Mover: flechas/A-D · Saltar: Espacio/Z · Atacar: X · Curar: C · "
-                                       "M tabla · G grafo · TAB laboratorio · ESC menú")
+                                       "G grafo · TAB laboratorio · ESC menú")
             alpha = int(255 * max(0.0, min(1.0, (self.t - 0.6) / 0.8, (5.0 - self.t) / 1.0)))
             self.hud.draw_area_title(screen, self.level.name, f"Nivel {self.level.n}", alpha)
         else:
             self.hud.draw_badge(screen, f"LABORATORIO IA · Nivel {self.level.n}  x{SPEEDS[self.speed_i]}   ·   TAB volver a la partida")
-            self.hud.draw_table(screen, w, big=True)
-            self.hud.draw_pairwise(screen, w)
+            self.hud.draw_toolbar(screen, ("tabla", "pares", "valid", "params"))
+            y = self.hud.draw_table(screen, w, big=True)
+            self.hud.draw_pairwise(screen, w, y)
             self.hud.draw_validation(screen)
+            self.hud.draw_params(screen, w)
 
         if self.toast[1] > 0:
             self.hud.draw_toast(screen, self.toast[0], min(1.0, self.toast[1]))
@@ -204,16 +215,17 @@ class PlayScene:
         if w.mode == "manual":
             self.hud.draw_vitals(screen, w.player, self.t)
             self.hud.draw_badge(screen, f"Hornet: {w.selection}   (1-{n} estrategia)")
-            if self.hud.show_table:
-                br.draw_table(screen, w)
+            self.hud.draw_toolbar(screen, ("tabla",))
+            br.draw_table(screen, w, mode=self.hud.panels["tabla"])
             br.draw_bar(screen, w)
             self.hud.draw_hint(screen, "Mover: flechas/A-D · Saltar: Espacio/Z · Atacar: X · Curar: C · "
-                                       "M tabla · TAB laboratorio · ESC menú")
+                                       "TAB laboratorio · ESC menú")
             alpha = int(255 * max(0.0, min(1.0, (self.t - 0.6) / 0.8, (5.0 - self.t) / 1.0)))
             self.hud.draw_area_title(screen, self.level.name, "Jefe final", alpha)
         else:
             self.hud.draw_badge(screen, f"LABORATORIO DEL JEFE  x{SPEEDS[self.speed_i]}   ·   TAB volver a la partida")
-            br.draw_table(screen, w, big=True)
+            self.hud.draw_toolbar(screen, ("tabla",))
+            br.draw_table(screen, w, big=True, mode=self.hud.panels["tabla"])
 
 
 class EndScene:

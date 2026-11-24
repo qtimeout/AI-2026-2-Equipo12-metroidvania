@@ -71,28 +71,28 @@ Línea base: predecir siempre la clase más frecuente da 0.447 de exactitud.
 | Utilidad (a mano) | agente basado en utilidad (B1) | utilidad = P(acierto) / duración; P sale de un modelo geométrico escrito a mano que predice dónde estará el jugador |
 | Utilidad (aprendida) | utilidad + regresión logística (B2) | misma utilidad, pero P(acierto \| ataque, situación) la estima una regresión logística con términos de grado 2 |
 
-**Regresión logística** (`tools/train_boss.py`): 1 896 ataques registrados con el jefe aleatorio y la semilla 7 (distinta de las de evaluación), validación cruzada de 5 particiones:
+**Regresión logística** (`tools/train_boss.py`): 1 804 ataques registrados con el jefe aleatorio y la semilla 7 (distinta de las de evaluación), validación cruzada de 5 particiones:
 
 | Ataque | Acierto real | Exactitud CV | AUC CV | Brier (base) |
 |---|---|---|---|---|
-| Lanza | 0.69 | 0.836 | 0.826 | 0.127 (0.213) |
-| Embestida | 0.63 | 0.723 | 0.755 | 0.184 (0.233) |
-| Salto | 0.54 | 0.540 | 0.569 | 0.245 (0.249) |
+| Lanza | 0.71 | 0.816 | 0.819 | 0.136 (0.205) |
+| Embestida | 0.65 | 0.747 | 0.755 | 0.171 (0.228) |
+| Salto | 0.47 | 0.510 | 0.496 | 0.254 (0.249) |
 
 **En la arena** (`python app/benchmark.py --level 4 --rounds 30 --seeds 2026 2027 2028 2029 2030`; 5 semillas × 30 rondas de 60 s):
 
 | Estrategia | Acierto % | Aciertos/min | Corridas |
 |---|---|---|---|
-| Aleatorio (base) | 63.6 ± 1.4 | 20.3 ± 0.4 | 150 |
-| Reflejo | 53.3 ± 2.0 | 16.2 ± 0.7 | 150 |
-| Utilidad (a mano) | 64.3 ± 1.2 | 22.8 ± 0.4 | 150 |
-| **Utilidad (aprendida)** | **72.5 ± 0.5** | **26.5 ± 0.2** | 150 |
+| Aleatorio (base) | 61.4 ± 1.7 | 18.5 ± 0.6 | 150 |
+| Reflejo | 51.3 ± 4.2 | 15.0 ± 1.3 | 150 |
+| Utilidad (a mano) | 60.9 ± 2.1 | 20.1 ± 0.8 | 150 |
+| **Utilidad (aprendida)** | **69.4 ± 1.3** | **25.2 ± 0.4** | 150 |
 
 **Análisis.**
-- **La utilidad aprendida gana en las 5 semillas:** acierta 9 puntos más que el azar y saca un 31 % más de aciertos por minuto.
+- **La utilidad aprendida gana en las 5 semillas:** acierta 8 puntos más que el azar y saca un 36 % más de aciertos por minuto.
 - **Un agente de utilidad vale lo que vale su modelo del mundo.** El modelo escrito a mano estaba mal calibrado: en una primera versión predecía 100 % de acierto para embestidas que acertaban el 34 %, y la utilidad a mano quedó *por debajo* del azar. Aprender P(acierto) con datos corrigió eso.
 - **El Reflejo es el peor.** Sus reglas («si está lejos, lanza») ignoran que el jugador se mueve.
-- **Límite:** el modelo del salto apenas supera al azar (AUC 0.57), así que la versión aprendida casi nunca salta. Con más características, como la altura del salto del jugador, podría mejorar.
+- **Límite:** el salto se anuncia 0.45 s antes, para que un humano pueda esquivarlo (un jugador simulado que reacciona en 0.2 s lo esquiva 59 de 60 veces). Como el robot del laboratorio se mueve al azar, que el salto acierte depende de la suerte, y su modelo no predice mejor que el azar (AUC 0.50). La utilidad aprendida casi no salta: aprendió que es el ataque menos fiable.
 
 
 ## Parámetros en vivo (para «cambie este parámetro y prediga»)

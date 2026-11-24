@@ -1,30 +1,30 @@
 {
  "semilla_datos": 7,
  "rondas": 60,
- "ataques": 1896,
+ "ataques": 1804,
  "modelos": {
   "lanza": {
-   "muestras": 682,
-   "acierto_real": 0.694,
-   "cv_exactitud": 0.836,
-   "cv_auc": 0.826,
-   "cv_brier": 0.127,
-   "brier_base": 0.213
+   "muestras": 647,
+   "acierto_real": 0.713,
+   "cv_exactitud": 0.816,
+   "cv_auc": 0.819,
+   "cv_brier": 0.136,
+   "brier_base": 0.205
   },
   "embestida": {
-   "muestras": 627,
-   "acierto_real": 0.63,
-   "cv_exactitud": 0.723,
+   "muestras": 596,
+   "acierto_real": 0.649,
+   "cv_exactitud": 0.747,
    "cv_auc": 0.755,
-   "cv_brier": 0.184,
-   "brier_base": 0.233
+   "cv_brier": 0.171,
+   "brier_base": 0.228
   },
   "salto": {
-   "muestras": 587,
-   "acierto_real": 0.535,
-   "cv_exactitud": 0.54,
-   "cv_auc": 0.569,
-   "cv_brier": 0.245,
+   "muestras": 561,
+   "acierto_real": 0.465,
+   "cv_exactitud": 0.51,
+   "cv_auc": 0.496,
+   "cv_brier": 0.254,
    "brier_base": 0.249
   }
  }

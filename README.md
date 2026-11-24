@@ -27,13 +27,13 @@ Laboratorio dentro del juego (`TAB`) y en consola (`python app/benchmark.py`): m
 
 | Estrategia del jefe | Acierto % | Aciertos/min | Corridas |
 |---------------------|-----------|--------------|----------|
-| Aleatorio (base) | 63.6 ± 1.4 | 20.3 | 150 × 60 s |
-| Reflejo | 53.3 ± 2.0 | 16.2 | 150 × 60 s |
-| Utilidad (a mano) | 64.3 ± 1.2 | 22.8 | 150 × 60 s |
-| **Utilidad + regresión logística** | **72.5 ± 0.5** | **26.5** | 150 × 60 s |
+| Aleatorio (base) | 61.4 ± 1.7 | 18.5 | 150 × 60 s |
+| Reflejo | 51.3 ± 4.2 | 15.0 | 150 × 60 s |
+| Utilidad (a mano) | 60.9 ± 2.1 | 20.1 | 150 × 60 s |
+| **Utilidad + regresión logística** | **69.4 ± 1.3** | **25.2** | 150 × 60 s |
 
 ## Cómo ejecutarlo
 - **En línea:** https://qtimeout.itch.io/metroidvania-equipo-12 · **Código:** https://github.com/qtimeout/AI-2026-2-Equipo12-metroidvania
 - **Local:** `pip install -r requirements.txt` y luego `python app/main.py`. En navegador: `python -m pygbag app`.
-- **Controles:** flechas para moverse, Espacio para saltar, X para atacar y C para curarse. `1..7` asigna la técnica de los enemigos, `0` activa el modo mixto, `G` muestra el grafo, `M` la tabla y `TAB` el laboratorio (`F` cambia la velocidad). **Parámetros en vivo:** `+`/`−` presupuesto por frame, `H` peso de la heurística de A\* y `N` vecinos del KNN (efectos medidos en [docs/RESULTADOS.md](docs/RESULTADOS.md)).
+- **Controles:** flechas para moverse, Espacio para saltar, X para atacar y C para curarse. `1..7` asigna la técnica de los enemigos, `0` activa el modo mixto, `G` muestra el grafo y `TAB` abre el laboratorio (`F` cambia la velocidad). Paneles (teclas o botones arriba a la derecha): `M` tabla compacta → completa → oculta, `P` comparación por pares, `V` validación y `O` parámetros. En «Aleatorio (mixto)» se sortean la técnica **y el tipo** de cada enemigo. **Parámetros en vivo:** `+`/`−` presupuesto por frame, `H` peso de la heurística de A\* y `N` vecinos del KNN (efectos medidos en [docs/RESULTADOS.md](docs/RESULTADOS.md)).
 - **Reproducir:** `python app/benchmark.py --level N --seeds 2026 2027 2028`. Reentrenar: `tools/make_dataset.py`, `tools/train_models.py 1 2 3` y `tools/train_boss.py`.
